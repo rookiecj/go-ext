@@ -6,13 +6,13 @@ import (
 )
 
 type myStruct struct {
-	Node  Node
+	Node  PQNode
 	value string
 }
 
 var nodeOffset = unsafe.Offsetof(myStruct{}.Node)
 
-func equalValue(left *Node, right *Node) bool {
+func equalValue(left *PQNode, right *PQNode) bool {
 	if left == nil || right == nil {
 		return false
 	}
@@ -33,22 +33,22 @@ func TestPriorityQueue_Push(t *testing.T) {
 		want args
 	}{
 		{
-			name: "priority - 1,2,3",
+			name: "Priority - 1,2,3",
 			args: args{
 				items: []*myStruct{
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 					},
 					{
-						Node: Node{
-							priority: 2,
+						Node: PQNode{
+							Priority: 2,
 						},
 					},
 					{
-						Node: Node{
-							priority: 3,
+						Node: PQNode{
+							Priority: 3,
 						},
 					},
 				},
@@ -56,18 +56,18 @@ func TestPriorityQueue_Push(t *testing.T) {
 			want: args{
 				items: []*myStruct{
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 					},
 					{
-						Node: Node{
-							priority: 2,
+						Node: PQNode{
+							Priority: 2,
 						},
 					},
 					{
-						Node: Node{
-							priority: 3,
+						Node: PQNode{
+							Priority: 3,
 						},
 					},
 				},
@@ -75,24 +75,24 @@ func TestPriorityQueue_Push(t *testing.T) {
 		},
 
 		{
-			name: "priority - 1,1,1",
+			name: "Priority - 1,1,1",
 			args: args{
 				items: []*myStruct{
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 						value: "1",
 					},
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 						value: "2",
 					},
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 						value: "3",
 					},
@@ -101,20 +101,20 @@ func TestPriorityQueue_Push(t *testing.T) {
 			want: args{
 				items: []*myStruct{
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 						value: "1",
 					},
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 						value: "2",
 					},
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 						value: "3",
 					},
@@ -123,36 +123,36 @@ func TestPriorityQueue_Push(t *testing.T) {
 		},
 
 		{
-			name: "priority - 1,2,3,1,2",
+			name: "Priority - 1,2,3,1,2",
 			args: args{
 				items: []*myStruct{
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 						value: "1",
 					},
 					{
-						Node: Node{
-							priority: 2,
+						Node: PQNode{
+							Priority: 2,
 						},
 						value: "2",
 					},
 					{
-						Node: Node{
-							priority: 3,
+						Node: PQNode{
+							Priority: 3,
 						},
 						value: "3",
 					},
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 						value: "4",
 					},
 					{
-						Node: Node{
-							priority: 2,
+						Node: PQNode{
+							Priority: 2,
 						},
 						value: "5",
 					},
@@ -161,28 +161,28 @@ func TestPriorityQueue_Push(t *testing.T) {
 			want: args{
 				items: []*myStruct{
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 					},
 					{
-						Node: Node{
-							priority: 1,
+						Node: PQNode{
+							Priority: 1,
 						},
 					},
 					{
-						Node: Node{
-							priority: 2,
+						Node: PQNode{
+							Priority: 2,
 						},
 					},
 					{
-						Node: Node{
-							priority: 2,
+						Node: PQNode{
+							Priority: 2,
 						},
 					},
 					{
-						Node: Node{
-							priority: 3,
+						Node: PQNode{
+							Priority: 3,
 						},
 					},
 				},
@@ -201,7 +201,7 @@ func TestPriorityQueue_Push(t *testing.T) {
 
 			wantLen := pq.Len()
 
-			var gotNodes []*Node
+			var gotNodes []*PQNode
 			for pq.Len() > 0 {
 				gotNodes = append(gotNodes, pq.Pop())
 			}
@@ -211,12 +211,12 @@ func TestPriorityQueue_Push(t *testing.T) {
 			}
 
 			for idx, got := range gotNodes {
-				//if !reflect.DeepEqual(&tt.want.items[idx].Node, got) {
-				//	t.Errorf("PriorityQueue priority diff want %v, got %v", tt.want.items[idx].Node, got)
+				//if !reflect.DeepEqual(&tt.want.items[idx].PQNode, got) {
+				//	t.Errorf("PriorityQueue Priority diff want %v, got %v", tt.want.items[idx].PQNode, got)
 				//}
 				want := &tt.want.items[idx].Node
-				if want.priority != got.priority || !equalValue(want, got) {
-					t.Errorf("PriorityQueue priority diff want %v, got %v", tt.want.items[idx].Node, got)
+				if want.Priority != got.Priority || !equalValue(want, got) {
+					t.Errorf("PriorityQueue Priority diff want %v, got %v", tt.want.items[idx].Node, got)
 				}
 			}
 		})
@@ -227,12 +227,12 @@ func TestPriorityQueue_PushMany(t *testing.T) {
 	q := NewPriorityQueue()
 	limit := 10240
 	for idx := 0; idx < limit; idx++ {
-		q.Push(&Node{
-			priority: idx,
+		q.Push(&PQNode{
+			Priority: idx,
 		})
 	}
 
-	var gotNodes []*Node
+	var gotNodes []*PQNode
 	for q.Len() > 0 {
 		gotNodes = append(gotNodes, q.Pop())
 	}
@@ -242,8 +242,8 @@ func TestPriorityQueue_PushMany(t *testing.T) {
 	}
 
 	for idx := 0; idx < limit; idx++ {
-		if gotNodes[idx].priority != idx {
-			t.Errorf("PushMany priority want=%d, got=%d", idx, gotNodes[idx].priority)
+		if gotNodes[idx].Priority != idx {
+			t.Errorf("PushMany Priority want=%d, got=%d", idx, gotNodes[idx].Priority)
 		}
 	}
 }

@@ -5,23 +5,23 @@ import (
 	"math"
 )
 
-type Node struct {
-	// 최소 힙(Min Heap)을 사용
-	// 최소 힙에서는 부모 노드의 값이 자식 노드의 값보다 항상 작거나 같아야 합니다.
-	priority int
-	// stable
-	index int
-}
-
-// PriorityQueue is a priority queue based on a min heap.
+// PriorityQueue is a Priority queue based on a min heap.
 type PriorityQueue interface {
-	Push(*Node) error
-	Pop() *Node
+	Push(*PQNode) error
+	Pop() *PQNode
 	Len() int
 }
 
+type PQNode struct {
+	// 최소 힙(Min Heap)을 사용
+	// 최소 힙에서는 부모 노드의 값이 자식 노드의 값보다 항상 작거나 같아야 합니다.
+	Priority int
+	// stable for internal
+	index int
+}
+
 type priorityQueue struct {
-	q   []*Node
+	q   []*PQNode
 	seq int // sequence for index
 }
 
@@ -31,7 +31,7 @@ func NewPriorityQueue() PriorityQueue {
 }
 
 // Push add a new node
-func (pq *priorityQueue) Push(node *Node) error {
+func (pq *priorityQueue) Push(node *PQNode) error {
 	if pq == nil || node == nil {
 		return errors.New("nil reference")
 	}
@@ -48,7 +48,7 @@ func (pq *priorityQueue) Push(node *Node) error {
 
 // Pop remove the highest priority node and return it
 // returns nil if q is empty
-func (pq *priorityQueue) Pop() *Node {
+func (pq *priorityQueue) Pop() *PQNode {
 	if pq == nil {
 		return nil
 	}
@@ -105,10 +105,10 @@ func (pq *priorityQueue) down(index int) {
 
 func (pq *priorityQueue) less(i, j int) bool {
 	// 우선순위가 같으면 추가된 순서 (index) 비교
-	if pq.q[i].priority == pq.q[j].priority {
+	if pq.q[i].Priority == pq.q[j].Priority {
 		return pq.q[i].index < pq.q[j].index
 	}
-	return pq.q[i].priority < pq.q[j].priority
+	return pq.q[i].Priority < pq.q[j].Priority
 }
 
 func (pq *priorityQueue) swap(i, j int) {
