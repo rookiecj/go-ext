@@ -13,33 +13,42 @@ type Node struct {
 	index int
 }
 
-type PriorityQueue []*Node
+// PriorityQueue is a priority queue based on a min heap.
+type PriorityQueue interface {
+	Push(*Node) error
+	Pop() *Node
+	Len() int
+}
 
-var seq = 0
+type priorityQueue struct {
+	q   []*Node
+	seq int // sequence for index
+}
 
-// NewPriorityQueue
-func NewPriorityQueue() *PriorityQueue {
-	return &PriorityQueue{}
+// NewPriorityQueue returns a new PriorityQueue.
+func NewPriorityQueue() PriorityQueue {
+	return &priorityQueue{}
 }
 
 // Push add a new node
-func (pq *PriorityQueue) Push(node *Node) error {
+func (pq *priorityQueue) Push(node *Node) error {
 	if pq == nil || node == nil {
 		return errors.New("nil reference")
 	}
-	if seq == math.MaxInt {
+	if pq.seq == math.MaxInt {
 		return errors.New("reached max sequence")
 	}
-	node.index = seq
-	seq++
+	node.index = pq.seq
+	pq.seq++
 
-	*pq = append(*pq, node)
-	pq.up(len(*pq) - 1)
+	pq.q = append(pq.q, node)
+	pq.up(len(pq.q) - 1)
 	return nil
 }
 
 // Pop remove the highest priority node and return it
-func (pq *PriorityQueue) Pop() *Node {
+// returns nil if q is empty
+func (pq *priorityQueue) Pop() *Node {
 	if pq == nil {
 		return nil
 	}
@@ -47,24 +56,24 @@ func (pq *PriorityQueue) Pop() *Node {
 	if n == 0 {
 		return nil
 	}
-	old := *pq
-	node := old[0]
-	old[0] = old[n-1]
-	old[n-1] = nil
-	*pq = old[:n-1]
+
+	node := pq.q[0]
+	pq.q[0] = pq.q[n-1]
+	//pq.q = append(pq.q[:0], pq.q[:n-1]...)
+	pq.q = pq.q[:n-1]
 	pq.down(0)
 	return node
 }
 
 // Len return length of q
-func (pq *PriorityQueue) Len() int {
-	if pq == nil {
+func (pq *priorityQueue) Len() int {
+	if pq == nil || pq.q == nil {
 		return 0
 	}
-	return len(*pq)
+	return len(pq.q)
 }
 
-func (pq *PriorityQueue) up(index int) {
+func (pq *priorityQueue) up(index int) {
 	for {
 		parent := (index - 1) / 2 // 부모 노드의 인덱스
 		if index == 0 || !pq.less(index, parent) {
@@ -75,8 +84,8 @@ func (pq *PriorityQueue) up(index int) {
 	}
 }
 
-func (pq *PriorityQueue) down(index int) {
-	n := len(*pq)
+func (pq *priorityQueue) down(index int) {
+	n := pq.Len()
 	for {
 		left := 2*index + 1
 		if left >= n || left < 0 { // left < 0: 오버플로우 방지
@@ -94,14 +103,14 @@ func (pq *PriorityQueue) down(index int) {
 	}
 }
 
-func (pq *PriorityQueue) less(i, j int) bool {
+func (pq *priorityQueue) less(i, j int) bool {
 	// 우선순위가 같으면 추가된 순서 (index) 비교
-	if (*pq)[i].priority == (*pq)[j].priority {
-		return (*pq)[i].index < (*pq)[j].index
+	if pq.q[i].priority == pq.q[j].priority {
+		return pq.q[i].index < pq.q[j].index
 	}
-	return (*pq)[i].priority < (*pq)[j].priority
+	return pq.q[i].priority < pq.q[j].priority
 }
 
-func (pq *PriorityQueue) swap(i, j int) {
-	(*pq)[i], (*pq)[j] = (*pq)[j], (*pq)[i]
+func (pq *priorityQueue) swap(i, j int) {
+	pq.q[i], pq.q[j] = pq.q[j], pq.q[i]
 }

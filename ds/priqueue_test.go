@@ -28,16 +28,12 @@ func TestPriorityQueue_Push(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		pq   *PriorityQueue
+		pq   PriorityQueue
 		args args
 		want args
 	}{
 		{
 			name: "priority - 1,2,3",
-			pq: func() *PriorityQueue {
-				pq := NewPriorityQueue()
-				return pq
-			}(),
 			args: args{
 				items: []*myStruct{
 					{
@@ -80,10 +76,6 @@ func TestPriorityQueue_Push(t *testing.T) {
 
 		{
 			name: "priority - 1,1,1",
-			pq: func() *PriorityQueue {
-				pq := NewPriorityQueue()
-				return pq
-			}(),
 			args: args{
 				items: []*myStruct{
 					{
@@ -132,10 +124,6 @@ func TestPriorityQueue_Push(t *testing.T) {
 
 		{
 			name: "priority - 1,2,3,1,2",
-			pq: func() *PriorityQueue {
-				pq := NewPriorityQueue()
-				return pq
-			}(),
 			args: args{
 				items: []*myStruct{
 					{
@@ -232,5 +220,30 @@ func TestPriorityQueue_Push(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestPriorityQueue_PushMany(t *testing.T) {
+	q := NewPriorityQueue()
+	limit := 10240
+	for idx := 0; idx < limit; idx++ {
+		q.Push(&Node{
+			priority: idx,
+		})
+	}
+
+	var gotNodes []*Node
+	for q.Len() > 0 {
+		gotNodes = append(gotNodes, q.Pop())
+	}
+
+	if len(gotNodes) != limit {
+		t.Errorf("PushMany length want=%d, got=%d", limit, len(gotNodes))
+	}
+
+	for idx := 0; idx < limit; idx++ {
+		if gotNodes[idx].priority != idx {
+			t.Errorf("PushMany priority want=%d, got=%d", idx, gotNodes[idx].priority)
+		}
 	}
 }
