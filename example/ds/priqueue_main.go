@@ -40,7 +40,7 @@ func main() {
 		},
 	}
 
-	pq := ds.NewPriorityQueue()
+	pq := ds.NewPriorityQueue(0)
 	for _, item := range items {
 		pq.Push(&item.Node)
 	}

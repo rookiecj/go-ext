@@ -32,8 +32,10 @@ type priorityQueue struct {
 }
 
 // NewPriorityQueue returns a new PriorityQueue.
-func NewPriorityQueue() PriorityQueue {
-	return &priorityQueue{}
+func NewPriorityQueue(capacity int) PriorityQueue {
+	return &priorityQueue{
+		q: make([]*PQNode, 0, capacity),
+	}
 }
 
 // Push add a new node
