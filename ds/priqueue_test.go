@@ -298,3 +298,42 @@ func TestPriorityQueueN_PushPopMany(t *testing.T) {
 		prevPriority = gotNodes[idx].Priority
 	}
 }
+
+func TestPriorityQueueN_PushPopRand(t *testing.T) {
+	//limit := 10240 // rand 2 millis
+
+	limit := 10000000
+	//PushPopRand took 7479 millis for 6667121 items
+
+	//limit := 100000000
+	//PushPopRand took 130791 millis for 66665244 items
+
+	q := NewPriorityQueue(limit)
+
+	start := time.Now()
+	for idx := 0; idx < limit; idx++ {
+		pri := rand.Intn(limit)
+		q.Push(&PQNode{
+			//Priority: idx, // linear
+			Priority: pri, // rand
+		})
+		if pri%3 == 0 {
+			q.Pop()
+		}
+	}
+
+	var gotNodes []*PQNode
+	for q.Len() > 0 {
+		gotNodes = append(gotNodes, q.Pop())
+	}
+	fmt.Printf("PushPopRand took %d millis for %d items\n", time.Now().Sub(start).Milliseconds(), len(gotNodes))
+
+	prevPriority := 0
+	for idx := 0; idx < len(gotNodes); idx++ {
+		if gotNodes[idx].Priority < prevPriority {
+			t.Errorf("PushPopRand Priority want=%d, got=%d", prevPriority, gotNodes[idx].Priority)
+			break
+		}
+		prevPriority = gotNodes[idx].Priority
+	}
+}
