@@ -7,8 +7,14 @@ import (
 
 // PriorityQueue is a Priority queue based on a min heap.
 type PriorityQueue interface {
+
+	// Push add a new node
 	Push(*PQNode) error
+
+	// Pop remove the highest priority node and return it
 	Pop() *PQNode
+
+	// Len return length of q
 	Len() int
 }
 
@@ -16,7 +22,7 @@ type PQNode struct {
 	// 최소 힙(Min Heap)을 사용
 	// 최소 힙에서는 부모 노드의 값이 자식 노드의 값보다 항상 작거나 같아야 합니다.
 	Priority int
-	// stable for internal
+	// for stable
 	index int
 }
 
