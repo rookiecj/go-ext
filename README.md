@@ -23,7 +23,7 @@ There are two extentions:
 
 ### lang extensions
 
-- [ ] ds: priority queue
+- [ ] container: priority queue
 
 ### http extensions
 
@@ -33,3 +33,6 @@ There are two extentions:
 ## Todo
 
 - [ ] http response adapter for `go-stream`
+- [ ] sorted map
+- [ ] binary Writer/Reader with string,int
+- 

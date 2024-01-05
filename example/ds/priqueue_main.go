@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/rookiecj/go-langext/ds"
+	"github.com/rookiecj/go-langext/container"
 	"unsafe"
 )
 
 type myStruct struct {
-	Node  ds.PQNode
+	Node  container.PQNode
 	value string
 }
 
 var nodeOffset = unsafe.Offsetof(myStruct{}.Node)
 
-func getItem(node *ds.PQNode) *myStruct {
+func getItem(node *container.PQNode) *myStruct {
 	s := (*myStruct)(unsafe.Add(unsafe.Pointer(node), -nodeOffset))
 	return s
 }
@@ -21,26 +21,26 @@ func getItem(node *ds.PQNode) *myStruct {
 func main() {
 	items := []*myStruct{
 		{
-			Node: ds.PQNode{
+			Node: container.PQNode{
 				Priority: 1,
 			},
 			value: "pri 1 - first",
 		},
 		{
-			Node: ds.PQNode{
+			Node: container.PQNode{
 				Priority: 2,
 			},
 			value: "pri 2 - second",
 		},
 		{
-			Node: ds.PQNode{
+			Node: container.PQNode{
 				Priority: 1,
 			},
 			value: "pri 1 - third",
 		},
 	}
 
-	pq := ds.NewPriorityQueue(0)
+	pq := container.NewPriorityQueue(0)
 	for _, item := range items {
 		pq.Push(&item.Node)
 	}

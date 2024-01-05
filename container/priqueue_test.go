@@ -1,4 +1,4 @@
-package ds
+package container
 
 import (
 	"fmt"
@@ -233,107 +233,110 @@ func TestPriorityQueue_PushPopMany(t *testing.T) {
 	//limit := 100000000 // linear 28s, rand 206s
 	//limit := 1000000000 // linear ?,
 
-	start := time.Now()
-	for idx := 0; idx < limit; idx++ {
-		q.Push(&PQNode{
-			//Priority: idx, // linear
-			Priority: rand.Intn(limit), // rand
-		})
-	}
+	t.Run(fmt.Sprintf("limit %d", limit), func(t *testing.T) {
 
-	var gotNodes []*PQNode
-	for q.Len() > 0 {
-		gotNodes = append(gotNodes, q.Pop())
-	}
-	fmt.Printf("PushMany took %d millis for %d items\n", time.Now().Sub(start).Milliseconds(), limit)
-
-	if len(gotNodes) != limit {
-		t.Errorf("PushMany length want=%d, got=%d", limit, len(gotNodes))
-		return
-	}
-
-	prevPriority := 0
-	for idx := 0; idx < limit; idx++ {
-		if gotNodes[idx].Priority < prevPriority {
-			t.Errorf("PushMany Priority want=%d, got=%d", prevPriority, gotNodes[idx].Priority)
-			break
+		start := time.Now()
+		for idx := 0; idx < limit; idx++ {
+			q.Push(&PQNode{
+				//Priority: idx, // linear
+				Priority: rand.Intn(limit), // rand
+			})
 		}
-		prevPriority = gotNodes[idx].Priority
-	}
+
+		var gotNodes []*PQNode
+		for q.Len() > 0 {
+			gotNodes = append(gotNodes, q.Pop())
+		}
+		fmt.Printf("PushMany took %d millis for %d items\n", time.Now().Sub(start).Milliseconds(), limit)
+
+		if len(gotNodes) != limit {
+			t.Errorf("PushMany length want=%d, got=%d", limit, len(gotNodes))
+			return
+		}
+
+		prevPriority := 0
+		for idx := 0; idx < limit; idx++ {
+			if gotNodes[idx].Priority < prevPriority {
+				t.Errorf("PushMany Priority want=%d, got=%d", prevPriority, gotNodes[idx].Priority)
+				break
+			}
+			prevPriority = gotNodes[idx].Priority
+		}
+	})
 }
 
 func TestPriorityQueueN_PushPopMany(t *testing.T) {
-	//limit := 10240 // rand 2 millis
-	limit := 10000000 // rand 10s
-	//limit := 100000000 //  rand 192s
+	//limit := 10240 //  2 millis
+	limit := 10000000 //  10s
+	//limit := 100000000 //  192s
 	//limit := 1000000000 //
 
-	q := NewPriorityQueue(limit)
+	t.Run(fmt.Sprintf("limit %d", limit), func(t *testing.T) {
+		q := NewPriorityQueue(limit)
 
-	start := time.Now()
-	for idx := 0; idx < limit; idx++ {
-		q.Push(&PQNode{
-			//Priority: idx, // linear
-			Priority: rand.Intn(limit), // rand
-		})
-	}
-
-	var gotNodes []*PQNode
-	for q.Len() > 0 {
-		gotNodes = append(gotNodes, q.Pop())
-	}
-	fmt.Printf("PushPopManyN took %d millis for %d items\n", time.Now().Sub(start).Milliseconds(), limit)
-
-	if len(gotNodes) != limit {
-		t.Errorf("PushPopManyN length want=%d, got=%d", limit, len(gotNodes))
-		return
-	}
-
-	prevPriority := 0
-	for idx := 0; idx < limit; idx++ {
-		if gotNodes[idx].Priority < prevPriority {
-			t.Errorf("PushPopManyN Priority want=%d, got=%d", prevPriority, gotNodes[idx].Priority)
-			break
+		start := time.Now()
+		for idx := 0; idx < limit; idx++ {
+			q.Push(&PQNode{
+				//Priority: idx, // linear
+				Priority: rand.Intn(limit), // rand
+			})
 		}
-		prevPriority = gotNodes[idx].Priority
-	}
+
+		var gotNodes []*PQNode
+		for q.Len() > 0 {
+			gotNodes = append(gotNodes, q.Pop())
+		}
+		fmt.Printf("PushPopManyN took %d millis for %d items\n", time.Now().Sub(start).Milliseconds(), limit)
+
+		if len(gotNodes) != limit {
+			t.Errorf("PushPopManyN length want=%d, got=%d", limit, len(gotNodes))
+			return
+		}
+
+		prevPriority := 0
+		for idx := 0; idx < limit; idx++ {
+			if gotNodes[idx].Priority < prevPriority {
+				t.Errorf("PushPopManyN Priority want=%d, got=%d", prevPriority, gotNodes[idx].Priority)
+				break
+			}
+			prevPriority = gotNodes[idx].Priority
+		}
+	})
 }
 
 func TestPriorityQueueN_PushPopRand(t *testing.T) {
 	//limit := 10240 // rand 2 millis
+	limit := 10000000 // 7479 millis for 6667121 items
+	//limit := 100000000 // 130791 millis for 66665244 items
 
-	limit := 10000000
-	//PushPopRand took 7479 millis for 6667121 items
+	t.Run(fmt.Sprintf("limit %d", limit), func(t *testing.T) {
+		q := NewPriorityQueue(limit)
 
-	//limit := 100000000
-	//PushPopRand took 130791 millis for 66665244 items
-
-	q := NewPriorityQueue(limit)
-
-	start := time.Now()
-	for idx := 0; idx < limit; idx++ {
-		pri := rand.Intn(limit)
-		q.Push(&PQNode{
-			//Priority: idx, // linear
-			Priority: pri, // rand
-		})
-		if pri%3 == 0 {
-			q.Pop()
+		start := time.Now()
+		for idx := 0; idx < limit; idx++ {
+			pri := rand.Intn(limit)
+			q.Push(&PQNode{
+				//Priority: idx, // linear
+				Priority: pri, // rand
+			})
+			if pri%3 == 0 {
+				q.Pop()
+			}
 		}
-	}
 
-	var gotNodes []*PQNode
-	for q.Len() > 0 {
-		gotNodes = append(gotNodes, q.Pop())
-	}
-	fmt.Printf("PushPopRand took %d millis for %d items\n", time.Now().Sub(start).Milliseconds(), len(gotNodes))
-
-	prevPriority := 0
-	for idx := 0; idx < len(gotNodes); idx++ {
-		if gotNodes[idx].Priority < prevPriority {
-			t.Errorf("PushPopRand Priority want=%d, got=%d", prevPriority, gotNodes[idx].Priority)
-			break
+		var gotNodes []*PQNode
+		for q.Len() > 0 {
+			gotNodes = append(gotNodes, q.Pop())
 		}
-		prevPriority = gotNodes[idx].Priority
-	}
+		fmt.Printf("PushPopRand took %d millis for %d items\n", time.Now().Sub(start).Milliseconds(), len(gotNodes))
+
+		prevPriority := 0
+		for idx := 0; idx < len(gotNodes); idx++ {
+			if gotNodes[idx].Priority < prevPriority {
+				t.Errorf("PushPopRand Priority want=%d, got=%d", prevPriority, gotNodes[idx].Priority)
+				break
+			}
+			prevPriority = gotNodes[idx].Priority
+		}
+	})
 }
