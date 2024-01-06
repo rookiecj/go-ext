@@ -267,7 +267,8 @@ func TestPriorityQueue_PushPopMany(t *testing.T) {
 
 func TestPriorityQueueN_PushPopMany(t *testing.T) {
 	//limit := 10240 //  2 millis
-	limit := 10000000 //  10s
+	limit := 1000000 // 650 mills
+	//limit := 10000000 //  10s
 	//limit := 100000000 //  192s
 	//limit := 1000000000 //
 
@@ -306,7 +307,8 @@ func TestPriorityQueueN_PushPopMany(t *testing.T) {
 
 func TestPriorityQueueN_PushPopRand(t *testing.T) {
 	//limit := 10240 // rand 2 millis
-	limit := 10000000 // 7479 millis for 6667121 items
+	limit := 1000000 //  took 441 millis for 667156 items
+	//limit := 10000000 // 7479 millis for 6667121 items
 	//limit := 100000000 // 130791 millis for 66665244 items
 
 	t.Run(fmt.Sprintf("limit %d", limit), func(t *testing.T) {
