@@ -160,9 +160,8 @@ func (client *Client) Head(url string, headers map[string]string) (res *Response
 
 func (client *Client) HeadWith(url *url.URL, options ...Option) (res *Response, err error) {
 	res, err = client.Do("HEAD", url, options...)
-	// header has no response body
+	// header has no response body, close here
 	res.Close()
-	res = nil
 	return
 }
 

@@ -523,3 +523,57 @@ func TestDeleteSimple(t *testing.T) {
 		})
 	}
 }
+
+func TestClient_HeadWith(t *testing.T) {
+
+	type args struct {
+		url     *url.URL
+		options []Option
+	}
+	tests := []struct {
+		name        string
+		client      *Client
+		args        args
+		wantHeaders []string
+		wantErr     bool
+	}{
+		{
+			name:   "Head",
+			client: testClient,
+			args: args{
+				url: func() *url.URL {
+					u, _ := url.Parse(testPostUrl)
+					return u
+				}(),
+				options: []Option{},
+			},
+			wantHeaders: []string{
+				"Date",
+				"Connection",
+				"Cache-Control",
+				"Age",
+				"Server",
+				"Content-Type",
+				"Via",
+				"Last-Modified",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotRes, err := tt.client.HeadWith(tt.args.url, tt.args.options...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HeadWith() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			gotValues := gotRes.Header()
+			for _, header := range tt.wantHeaders {
+				if _, ok := gotValues[header]; !ok {
+					t.Errorf("HeadWith(): want %v, got %v", header, gotValues)
+				}
+			}
+		})
+	}
+}
