@@ -338,7 +338,7 @@ func TestPostFileSimple(t *testing.T) {
 		wantErr  bool
 	}
 
-	serverUrl := startListen()
+	serverUrl := startServer()
 
 	tests := []testCase{
 		{
@@ -369,6 +369,7 @@ func TestPostFileSimple(t *testing.T) {
 				t.Errorf("Post File() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			//--b7fd4733b5b348e64082bc8bee0f38de8ea6c5a28c985cff6c83cff24500
 			//Content-Disposition: form-data; name="testfieldname"; filename="testfilename"
 			//Content-Type: application/octet-stream
@@ -376,12 +377,24 @@ func TestPostFileSimple(t *testing.T) {
 			//this is file
 			//--b7fd4733b5b348e64082bc8bee0f38de8ea6c5a28c985cff6c83cff24500--
 			//
+
 			// first line은 boundary
-			rawBody := string(gotResp.Data)
-			lines := strings.Split(rawBody, "\r\n")
-			boundary := lines[0]
-			bodyBuf := bytes.NewBufferString(rawBody)
-			partReader := multipart.NewReader(bodyBuf, boundary[2:])
+			bufBody := gotResp.BufferedReader()
+			size := 2
+			boundary := ""
+			thunk, err := bufBody.Peek(size)
+			for err == nil {
+				if strings.HasSuffix(string(thunk), "\r\n") {
+					boundary = string(thunk)
+					break
+				}
+				size += 1
+				thunk, err = bufBody.Peek(size)
+			}
+			boundary = strings.TrimSpace(boundary)
+			boundary = strings.Trim(boundary, "--")
+
+			partReader := multipart.NewReader(bufBody, boundary)
 			part, err := partReader.NextPart()
 			gotBody := ""
 			for err == nil {
@@ -400,13 +413,14 @@ func TestPostFileSimple(t *testing.T) {
 				part.Close()
 				part, err = partReader.NextPart()
 			}
+			gotResp.Close()
 
 			if !reflect.DeepEqual(gotBody, tt.wantBody) {
 				t.Errorf("Post File() gotBody = %v, want %v", gotBody, tt.wantBody)
 			}
 		})
 	}
-	stopListen()
+	stopServer()
 }
 
 func TestPutSimple(t *testing.T) {

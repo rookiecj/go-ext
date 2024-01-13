@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type testTodo struct {
@@ -65,7 +64,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(testComments)
+	//fmt.Println(testComments)
 
 	err = json.Unmarshal([]byte(testPostsJson), &testPosts)
 	if err != nil {

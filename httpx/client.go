@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"net/http"
@@ -72,28 +73,15 @@ func (client *Client) Do(method string, url *url.URL, options ...Option) (res *R
 	}
 
 	// resp.Body can be nil with HEAD method
-	defer func() {
-		if resp.Body != nil {
-			resp.Body.Close()
-		}
-	}()
-
-	var data []byte
-	if resp.Body != nil {
-		data, err = io.ReadAll(resp.Body)
-		if err != nil {
-			err = fmt.Errorf("err reading body: %s", err)
-			return
-		}
-	}
-
+	//defer func() {
+	//	if resp.Body != nil {
+	//		resp.Body.Close()
+	//	}
+	//}()
 	res = &Response{
 		res:         resp,
+		bufBody:     bufio.NewReader(resp.Body),
 		bodyParsers: client.bodyParsers,
-		Header:      resp.Header,
-		Status:      resp.Status,
-		StatusCode:  resp.StatusCode,
-		Data:        data,
 	}
 	return
 }

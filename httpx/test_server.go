@@ -8,7 +8,7 @@ import (
 
 var testServer *httptest.Server
 
-func startListen() (url string) {
+func startServer() (url string) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//fmt.Fprintln(w, "Hello, client")
 		reqBytes, err := io.ReadAll(r.Body)
@@ -25,7 +25,7 @@ func startListen() (url string) {
 	return testServer.URL
 }
 
-func stopListen() {
+func stopServer() {
 	if testServer != nil {
 		testServer.Close()
 		testServer = nil
