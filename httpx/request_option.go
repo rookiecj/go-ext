@@ -9,6 +9,26 @@ import (
 	"os"
 )
 
+type Request struct {
+	// fields can be hidden
+	// becuase the request only be created and accessed in the client
+	headers map[string]string
+	path    string
+	queries map[string][]string
+
+	contentType string
+	body        *bytes.Buffer
+}
+
+type Option func(req *Request)
+
+func newRequest() *Request {
+	return &Request{
+		headers: make(map[string]string),
+		body:    nil,
+	}
+}
+
 func WithHeader(key, value string) func(req *Request) {
 	return func(req *Request) {
 		if req.headers == nil {

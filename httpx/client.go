@@ -1,7 +1,6 @@
 package httpx
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,32 +12,6 @@ const (
 	DefaultTimeout = 10 * time.Second
 )
 
-type Request struct {
-	// fields can be hidden
-	// becuase the request only be created and accessed in the client
-	headers map[string]string
-	path    string
-	queries map[string][]string
-
-	contentType string
-	body        *bytes.Buffer
-}
-
-func newRequest() *Request {
-	return &Request{
-		headers: make(map[string]string),
-		body:    nil,
-	}
-}
-
-type Response struct {
-	res        *http.Response
-	Header     map[string][]string
-	Status     string
-	StatusCode int
-	Data       []byte
-}
-
 type Client struct {
 	//Do(method string, url url.URL, options ...Option) (res *http.Response, data []byte, err error)
 	client http.Client
@@ -47,11 +20,9 @@ type Client struct {
 	disableCompression bool
 }
 
-type Option func(req *Request)
-
 var DefaultClient = NewBuilder().Build()
 
-func (c *Client) Do(method string, url *url.URL, options ...Option) (res *Response, err error) {
+func (client *Client) Do(method string, url *url.URL, options ...Option) (res *Response, err error) {
 
 	// new request
 	req := newRequest()
@@ -93,7 +64,7 @@ func (c *Client) Do(method string, url *url.URL, options ...Option) (res *Respon
 	}
 
 	// create http.Request from Request
-	resp, err := c.client.Do(hreq)
+	resp, err := client.client.Do(hreq)
 	if err != nil {
 		err = fmt.Errorf("failed to request: %s", err)
 		return
@@ -116,11 +87,48 @@ func (c *Client) Do(method string, url *url.URL, options ...Option) (res *Respon
 	}
 
 	res = &Response{
-		res:        resp,
-		Header:     resp.Header,
-		Status:     resp.Status,
-		StatusCode: resp.StatusCode,
-		Data:       data,
+		res:         resp,
+		bodyParsers: client.bodyParsers,
+		Header:      resp.Header,
+		Status:      resp.Status,
+		StatusCode:  resp.StatusCode,
+		Data:        data,
 	}
 	return
 }
+
+func (client *Client) Get(url *url.URL, options ...Option) (res *Response, err error) {
+	res, err = client.Do("GET", url, options...)
+	return
+}
+
+func (client *Client) Post(url *url.URL, options ...Option) (res *Response, err error) {
+	res, err = client.Do("POST", url, options...)
+	return
+}
+
+func (client *Client) Put(url *url.URL, options ...Option) (res *Response, err error) {
+	res, err = client.Do("PUT", url, options...)
+	return
+}
+
+func (client *Client) Delete(url *url.URL, options ...Option) (res *Response, err error) {
+	res, err = client.Do("DELETE", url, options...)
+	return
+}
+
+func (client *Client) Head(url *url.URL, options ...Option) (res *Response, err error) {
+	res, err = client.Do("HEAD", url, options...)
+	return
+}
+
+//
+//func (client *Client)Options(url *url.URL, options ...Option) (res *Response, err error)  {
+//	res, err = client.Do("OPTIONS", url, options...)
+//	return
+//}
+//
+//func (client *Client)Patch(url *url.URL, options ...Option) (res *Response, err error)  {
+//	res, err = client.Do("PATCH", url, options...)
+//	return
+//}
