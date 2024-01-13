@@ -38,6 +38,17 @@ func WithHeader(key, value string) func(req *Request) {
 	}
 }
 
+func WithHeaders(headers map[string]string) func(req *Request) {
+	return func(req *Request) {
+		if req.headers == nil {
+			req.headers = make(map[string]string)
+		}
+		for k, v := range headers {
+			req.headers[k] = v
+		}
+	}
+}
+
 func WithPath(path string) func(req *Request) {
 	return func(req *Request) {
 		req.path += path
@@ -107,6 +118,10 @@ func WithFormData(fields map[string]string) func(req *Request) {
 }
 
 func WithFile(fieldName string, file *os.File) func(req *Request) {
+	return WithReader(fieldName, file.Name(), file)
+}
+
+func WithReader(fieldName string, filename string, reader io.Reader) func(req *Request) {
 	return func(req *Request) {
 		if req.body == nil {
 			req.body = &bytes.Buffer{}
@@ -119,11 +134,11 @@ func WithFile(fieldName string, file *os.File) func(req *Request) {
 			}
 		}()
 
-		formWriter, err := mw.CreateFormFile(fieldName, file.Name())
+		formWriter, err := mw.CreateFormFile(fieldName, filename)
 		if err != nil {
 			panic(err)
 		}
-		if _, err = io.Copy(formWriter, file); err != nil {
+		if _, err = io.Copy(formWriter, reader); err != nil {
 			panic(err)
 		}
 		req.contentType = mw.FormDataContentType()

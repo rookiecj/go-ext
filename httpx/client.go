@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	neturl "net/url"
 	"time"
 )
 
@@ -97,27 +98,77 @@ func (client *Client) Do(method string, url *url.URL, options ...Option) (res *R
 	return
 }
 
-func (client *Client) Get(url *url.URL, options ...Option) (res *Response, err error) {
+func (client *Client) Get(url string, headers map[string]string) (res *Response, err error) {
+	newUrl, err := neturl.Parse(url)
+	if err != nil {
+		err = fmt.Errorf("parse error: %v", err)
+		return
+	}
+	res, err = client.GetWith(newUrl, WithHeaders(headers))
+	return
+}
+
+func (client *Client) GetWith(url *url.URL, options ...Option) (res *Response, err error) {
 	res, err = client.Do("GET", url, options...)
 	return
 }
 
-func (client *Client) Post(url *url.URL, options ...Option) (res *Response, err error) {
+func (client *Client) Post(url string, headers map[string]string, jsonObj any) (res *Response, err error) {
+	newUrl, err := neturl.Parse(url)
+	if err != nil {
+		err = fmt.Errorf("parse error: %v", err)
+		return
+	}
+	res, err = client.PostWith(newUrl, WithHeaders(headers), WithJsonObject(jsonObj))
+	return
+}
+
+func (client *Client) PostWith(url *url.URL, options ...Option) (res *Response, err error) {
 	res, err = client.Do("POST", url, options...)
 	return
 }
 
-func (client *Client) Put(url *url.URL, options ...Option) (res *Response, err error) {
+func (client *Client) Put(url string, headers map[string]string, jsonObj any) (res *Response, err error) {
+	newUrl, err := neturl.Parse(url)
+	if err != nil {
+		err = fmt.Errorf("parse error: %v", err)
+		return
+	}
+	res, err = client.PutWith(newUrl, WithHeaders(headers), WithJsonObject(jsonObj))
+	return
+}
+
+func (client *Client) PutWith(url *url.URL, options ...Option) (res *Response, err error) {
 	res, err = client.Do("PUT", url, options...)
 	return
 }
 
-func (client *Client) Delete(url *url.URL, options ...Option) (res *Response, err error) {
+func (client *Client) Delete(url string, headers map[string]string, jsonObj any) (res *Response, err error) {
+	newUrl, err := neturl.Parse(url)
+	if err != nil {
+		err = fmt.Errorf("parse error: %v", err)
+		return
+	}
+	res, err = client.DeleteWith(newUrl, WithHeaders(headers), WithJsonObject(jsonObj))
+	return
+}
+
+func (client *Client) DeleteWith(url *url.URL, options ...Option) (res *Response, err error) {
 	res, err = client.Do("DELETE", url, options...)
 	return
 }
 
-func (client *Client) Head(url *url.URL, options ...Option) (res *Response, err error) {
+func (client *Client) Head(url string, headers map[string]string) (res *Response, err error) {
+	newUrl, err := neturl.Parse(url)
+	if err != nil {
+		err = fmt.Errorf("parse error: %v", err)
+		return
+	}
+	res, err = client.HeadWith(newUrl, WithHeaders(headers))
+	return
+}
+
+func (client *Client) HeadWith(url *url.URL, options ...Option) (res *Response, err error) {
 	res, err = client.Do("HEAD", url, options...)
 	return
 }

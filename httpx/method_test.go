@@ -1,10 +1,16 @@
 package httpx
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
 	"github.com/rookiecj/go-langext/langx"
 	"github.com/rookiecj/go-langext/mapper"
+	"io"
+	"mime/multipart"
 	"net/url"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -45,7 +51,7 @@ func TestGetSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.Get(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.GetWith(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -77,7 +83,7 @@ func TestGetMulti(t *testing.T) {
 		{
 			name: "GET /posts",
 			args: args{
-				client: NewBuilder().Build(),
+				client: testClient,
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
@@ -92,7 +98,7 @@ func TestGetMulti(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.Get(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.GetWith(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetMulti() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -145,7 +151,7 @@ func TestGetMultiComments(t *testing.T) {
 		{
 			name: "GET - /comments?postId=1",
 			args: args{
-				client: NewBuilder().Build(),
+				client: testClient,
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
@@ -161,7 +167,7 @@ func TestGetMultiComments(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.Get(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.GetWith(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetMultiComments() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -200,7 +206,7 @@ func TestPostSimple(t *testing.T) {
 		{
 			name: "POST - WithJsonObject 1",
 			args: args{
-				client: NewBuilder().Build(),
+				client: testClient,
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
@@ -235,7 +241,7 @@ func TestPostSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.Post(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.PostWith(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Post() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -268,7 +274,7 @@ func TestPostFormSimple(t *testing.T) {
 		{
 			name: "POST - WithFormData 1",
 			args: args{
-				client: NewBuilder().Build(),
+				client: testClient,
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
@@ -302,7 +308,7 @@ func TestPostFormSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.Post(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.PostWith(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PostForm() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -317,6 +323,90 @@ func TestPostFormSimple(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPostFileSimple(t *testing.T) {
+	type args struct {
+		client  *Client
+		url     *url.URL
+		options []Option
+	}
+	type testCase struct {
+		name     string
+		args     args
+		wantBody any
+		wantErr  bool
+	}
+
+	serverUrl := startListen()
+
+	tests := []testCase{
+		{
+			name: "POST - WithFile",
+			args: args{
+				client: testClient,
+				url: func() *url.URL {
+					u, _ := url.Parse(serverUrl)
+					return u
+				}(),
+				options: []Option{
+					WithPath("/posts"),
+					WithReader("testfieldname", "testfilename", func() io.Reader {
+						msg := "this is file"
+						b := bytes.NewBufferString(msg)
+						return b
+					}()),
+				},
+			},
+			wantBody: "this is file",
+			wantErr:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotResp, err := tt.args.client.PostWith(tt.args.url, tt.args.options...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Post File() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			//--b7fd4733b5b348e64082bc8bee0f38de8ea6c5a28c985cff6c83cff24500
+			//Content-Disposition: form-data; name="testfieldname"; filename="testfilename"
+			//Content-Type: application/octet-stream
+			//
+			//this is file
+			//--b7fd4733b5b348e64082bc8bee0f38de8ea6c5a28c985cff6c83cff24500--
+			//
+			// first line은 boundary
+			rawBody := string(gotResp.Data)
+			lines := strings.Split(rawBody, "\r\n")
+			boundary := lines[0]
+			bodyBuf := bytes.NewBufferString(rawBody)
+			partReader := multipart.NewReader(bodyBuf, boundary[2:])
+			part, err := partReader.NextPart()
+			gotBody := ""
+			for err == nil {
+				for k, v := range part.Header {
+					fmt.Printf("part.Header: %s = '%v'\n", k, v)
+				}
+				fmt.Printf("part.FileName: %v\n", part.FileName())
+				var buff = make([]byte, 0, 64)
+				n, nerr := part.Read(buff[len(buff):cap(buff)])
+				if nerr != nil && !errors.Is(nerr, io.EOF) {
+					panic(nerr)
+				}
+				buff = buff[:len(buff)+n]
+				gotBody = string(buff)
+				fmt.Printf("part.Read: %d, %s\n", n, gotBody)
+				part.Close()
+				part, err = partReader.NextPart()
+			}
+
+			if !reflect.DeepEqual(gotBody, tt.wantBody) {
+				t.Errorf("Post File() gotBody = %v, want %v", gotBody, tt.wantBody)
+			}
+		})
+	}
+	stopListen()
 }
 
 func TestPutSimple(t *testing.T) {
@@ -335,7 +425,7 @@ func TestPutSimple(t *testing.T) {
 		{
 			name: "PUT - WithJsonObject 1",
 			args: args{
-				client: NewBuilder().Build(),
+				client: testClient,
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
@@ -353,7 +443,7 @@ func TestPutSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.Put(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.PutWith(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Put() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -386,7 +476,7 @@ func TestDeleteSimple(t *testing.T) {
 		{
 			name: "DELETE - WithJsonObject 1",
 			args: args{
-				client: NewBuilder().Build(),
+				client: testClient,
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
@@ -403,7 +493,7 @@ func TestDeleteSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.Delete(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.DeleteWith(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
 				return
