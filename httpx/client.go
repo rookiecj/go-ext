@@ -74,16 +74,19 @@ func (client *Client) Do(method string, url *url.URL, options ...Option) (res *R
 		return
 	}
 
-	// resp.Body can be nil with HEAD method
-	//defer func() {
-	//	if resp.Body != nil {
-	//		resp.Body.Close()
-	//	}
-	//}()
 	res = &Response{
 		res:         resp,
-		bufBody:     bufio.NewReader(resp.Body),
+		bufBody:     nil,
 		bodyParsers: client.bodyParsers,
+	}
+
+	// 204 No Content
+	if resp.StatusCode == 204 {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+	} else {
+		res.bufBody = bufio.NewReader(resp.Body)
 	}
 	return
 }
@@ -133,6 +136,21 @@ func (client *Client) PutWith(url *url.URL, options ...Option) (res *Response, e
 	return
 }
 
+//func (client *Client) Patch(url string, headers map[string]string, jsonObj any) (res *Response, err error) {
+//	newUrl, err := neturl.Parse(url)
+//	if err != nil {
+//		err = fmt.Errorf("parse error: %v", err)
+//		return
+//	}
+//	res, err = client.PatchWith(newUrl, WithHeaders(headers), WithJsonObject(jsonObj))
+//	return
+//}
+//
+//func (client *Client) PatchWith(url *url.URL, options ...Option) (res *Response, err error) {
+//	res, err = client.Do("PATCH", url, options...)
+//	return
+//}
+
 func (client *Client) Delete(url string, headers map[string]string, jsonObj any) (res *Response, err error) {
 	newUrl, err := neturl.Parse(url)
 	if err != nil {
@@ -181,9 +199,3 @@ func (client *Client) OptionsWith(url *url.URL, options ...Option) (res *Respons
 	res.Close()
 	return
 }
-
-//
-//func (client *Client)Patch(url *url.URL, options ...Option) (res *Response, err error)  {
-//	res, err = client.Do("PATCH", url, options...)
-//	return
-//}
