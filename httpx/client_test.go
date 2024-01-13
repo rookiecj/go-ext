@@ -577,3 +577,62 @@ func TestClient_HeadWith(t *testing.T) {
 		})
 	}
 }
+
+func TestClient_OptionsWith(t *testing.T) {
+
+	type args struct {
+		url     *url.URL
+		options []Option
+	}
+	tests := []struct {
+		name        string
+		client      *Client
+		args        args
+		wantHeaders map[string][]string
+		wantErr     bool
+	}{
+		{
+			name:   "Options",
+			client: testClient,
+			args: args{
+				url: func() *url.URL {
+					u, _ := url.Parse("https://example.org")
+					return u
+				}(),
+				options: []Option{},
+			},
+			wantHeaders: func() map[string][]string {
+				headers := make(map[string][]string)
+				headers["Allow"] = []string{"GET", "POST", "HEAD", "OPTIONS"}
+				return headers
+			}(),
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotRes, err := tt.client.OptionsWith(tt.args.url, tt.args.options...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("OptionsWith() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			for key, values := range tt.wantHeaders {
+				gotValues := gotRes.Header()[key]
+				//Header = {http.Header}
+				//0 = Allow -> len:1, cap:1
+				//key = {string} "Allow"
+				//value = {[]string} len:1, cap:1
+				//0 = {string} "OPTIONS, GET, HEAD, POST"
+				for _, value := range values {
+					//if !slices.Contains(gotValues, value) {
+					//	t.Errorf("OptionsWith(): want %v, got %v", values, gotValues)
+					//}
+					if !strings.Contains(gotValues[0], value) {
+						t.Errorf("OptionsWith(): want %v, got %v", values, gotValues)
+					}
+				}
+			}
+		})
+	}
+}

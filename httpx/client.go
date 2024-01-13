@@ -165,11 +165,23 @@ func (client *Client) HeadWith(url *url.URL, options ...Option) (res *Response, 
 	return
 }
 
-//
-//func (client *Client)Options(url *url.URL, options ...Option) (res *Response, err error)  {
-//	res, err = client.Do("OPTIONS", url, options...)
-//	return
-//}
+func (client *Client) Options(url string) (res *Response, err error) {
+	newUrl, err := neturl.Parse(url)
+	if err != nil {
+		err = fmt.Errorf("parse error: %v", err)
+		return
+	}
+	res, err = client.OptionsWith(newUrl)
+	return
+}
+
+func (client *Client) OptionsWith(url *url.URL, options ...Option) (res *Response, err error) {
+	res, err = client.Do("OPTIONS", url, options...)
+	// Options has no response body, close here
+	res.Close()
+	return
+}
+
 //
 //func (client *Client)Patch(url *url.URL, options ...Option) (res *Response, err error)  {
 //	res, err = client.Do("PATCH", url, options...)
