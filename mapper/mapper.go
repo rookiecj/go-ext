@@ -20,14 +20,18 @@ type structMapper struct {
 
 // NewMapper returns a new Mapper
 // tagName is the name of the struct tag to use
-func NewMapper(tagName string) Mapper {
+func NewMapper() Mapper {
+	return NewMapperWithTag("json")
+}
+
+func NewMapperWithTag(tagName string) Mapper {
 	return &structMapper{
 		tagName: tagName,
 	}
 }
 
 // Map maps a struct to another struct using field tags
-func (m *structMapper) Map(dest interface{}, src interface{}) error {
+func (m *structMapper) Map(destPtr interface{}, src interface{}) error {
 
 	// 임베딩된 구조체를 지원하기 위해 reflect.ValueOf() 함수를 이용하여 srcValue를 가져온다.
 	// srcValue가 포인터인 경우 포인터를 제거한다.
@@ -38,7 +42,7 @@ func (m *structMapper) Map(dest interface{}, src interface{}) error {
 
 	// destValue가 포인터가 아닌 경우 에러를 반환한다.
 	// destValue가 포인터이면서 구조체가 아닌 경우 에러를 반환한다.
-	destValue := reflect.ValueOf(dest)
+	destValue := reflect.ValueOf(destPtr)
 	if destValue.Kind() != reflect.Ptr {
 		return fmt.Errorf("dest must be a pointer")
 	}

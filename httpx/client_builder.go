@@ -3,27 +3,29 @@ package httpx
 import (
 	"net"
 	"net/http"
-	"reflect"
 	"time"
 )
 
 type Builder interface {
 	Timeout(timeout time.Duration) Builder
-	AddBodyParser(bodyType reflect.Type, parser BodyParser) Builder
-	Build() Client
+	//AddBodyParser(bodyType reflect.Type, parser BodyParser) Builder
+	AddBodyParser(contentType string, parser BodyParser) Builder
+	Build() *Client
 }
 
 type clientBuilder struct {
-	timeout     time.Duration
-	bodyParsers map[reflect.Type]BodyParser
+	timeout time.Duration
+	//bodyParsers map[reflect.Type]BodyParser
+	bodyParsers map[string]BodyParser
 	// the Transport requests gzip on its own and gets a gzipped response
 	disableCompression bool // false
 }
 
 func NewBuilder() Builder {
 	return &clientBuilder{
-		timeout:            DefaultTimeout,
-		bodyParsers:        make(map[reflect.Type]BodyParser),
+		timeout: DefaultTimeout,
+		//bodyParsers:        make(map[reflect.Type]BodyParser),
+		bodyParsers:        make(map[string]BodyParser),
 		disableCompression: false,
 	}
 }
@@ -33,12 +35,17 @@ func (c *clientBuilder) Timeout(timeout time.Duration) Builder {
 	return c
 }
 
-func (c *clientBuilder) AddBodyParser(bodyType reflect.Type, parser BodyParser) Builder {
-	c.bodyParsers[bodyType] = parser
+//func (c *clientBuilder) AddBodyParser(bodyType reflect.Type, parser BodyParser) Builder {
+//	c.bodyParsers[bodyType] = parser
+//	return c
+//}
+
+func (c *clientBuilder) AddBodyParser(contentType string, parser BodyParser) Builder {
+	c.bodyParsers[contentType] = parser
 	return c
 }
 
-func (c *clientBuilder) Build() Client {
+func (c *clientBuilder) Build() *Client {
 	// https://go.dev/src/net/http/transport.go
 	transport := http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -50,7 +57,7 @@ func (c *clientBuilder) Build() Client {
 		DisableCompression:  c.disableCompression,
 	}
 
-	client := baseClient{
+	client := Client{
 		client: http.Client{
 			Transport: &transport,
 			// connection timeout
