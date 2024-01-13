@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"net/http"
 	"reflect"
@@ -32,6 +33,7 @@ func (resp *Response) BufferedReader() *bufio.Reader {
 
 // Closer interface
 func (resp *Response) Close() {
+	// res.Body can be nil with HEAD method
 	if resp.res != nil && resp.res.Body != nil {
 		resp.res.Body.Close()
 	}
@@ -48,16 +50,18 @@ func (resp *Response) Unmarshal(ptrType any) (err error) {
 			// read all head
 			data, err = io.ReadAll(resp.BufferedReader())
 			if err != nil {
-				return
+				return fmt.Errorf("error while reading: %s", err)
 			}
+
 			err = bodyParser(data, ptrType)
 			if err == nil {
-				return nil
+				return // done
 			}
+			// fall through
 		}
 	}
 
-	// string
+	// fallback to string
 	bodyType := reflect.TypeOf(ptrType).Elem()
 	if bodyType.Kind() == reflect.String {
 		valType := reflect.ValueOf(ptrType)
@@ -66,5 +70,6 @@ func (resp *Response) Unmarshal(ptrType any) (err error) {
 		return nil
 	}
 
-	return
+	// error
+	return fmt.Errorf("unknown error: %s", err)
 }

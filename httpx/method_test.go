@@ -342,7 +342,7 @@ func TestPostFileSimple(t *testing.T) {
 
 	tests := []testCase{
 		{
-			name: "POST - WithFile",
+			name: "POST - WithMultipartFile",
 			args: args{
 				client: testClient,
 				url: func() *url.URL {
@@ -351,7 +351,7 @@ func TestPostFileSimple(t *testing.T) {
 				}(),
 				options: []Option{
 					WithPath("/posts"),
-					WithReader("testfieldname", "testfilename", func() io.Reader {
+					WithMultipartReader("testfieldname", "testfilename", func() io.Reader {
 						msg := "this is file"
 						b := bytes.NewBufferString(msg)
 						return b

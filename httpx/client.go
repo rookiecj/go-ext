@@ -29,7 +29,9 @@ func (client *Client) Do(method string, url *url.URL, options ...Option) (res *R
 	// new request
 	req := newRequest()
 	for _, opt := range options {
-		opt(req)
+		if err = opt(req); err != nil {
+			return
+		}
 	}
 
 	// path

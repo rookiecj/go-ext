@@ -3,6 +3,7 @@ package httpx
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/url"
@@ -20,7 +21,7 @@ type Request struct {
 	body        *bytes.Buffer
 }
 
-type Option func(req *Request)
+type Option func(req *Request) error
 
 func newRequest() *Request {
 	return &Request{
@@ -29,81 +30,91 @@ func newRequest() *Request {
 	}
 }
 
-func WithHeader(key, value string) func(req *Request) {
-	return func(req *Request) {
+func WithHeader(key, value string) func(req *Request) error {
+	return func(req *Request) error {
 		if req.headers == nil {
 			req.headers = make(map[string]string)
 		}
 		req.headers[key] = value
+		return nil
 	}
 }
 
-func WithHeaders(headers map[string]string) func(req *Request) {
-	return func(req *Request) {
+func WithHeaders(headers map[string]string) func(req *Request) error {
+	return func(req *Request) error {
 		if req.headers == nil {
 			req.headers = make(map[string]string)
 		}
 		for k, v := range headers {
 			req.headers[k] = v
 		}
+		return nil
 	}
 }
 
-func WithPath(path string) func(req *Request) {
-	return func(req *Request) {
+func WithPath(path string) func(req *Request) error {
+	return func(req *Request) error {
 		req.path += path
+		return nil
 	}
 }
 
-func WithQuery(key, value string) func(req *Request) {
-	return func(req *Request) {
+func WithQuery(key, value string) func(req *Request) error {
+	return func(req *Request) error {
 		if req.queries == nil {
 			req.queries = make(map[string][]string)
 		}
 		req.queries[key] = append(req.queries[key], value)
+		return nil
 	}
 }
 
-func WithQueries(queries map[string][]string) func(req *Request) {
-	return func(req *Request) {
+func WithQueries(queries map[string][]string) func(req *Request) error {
+	return func(req *Request) error {
 		if req.queries == nil {
 			req.queries = make(map[string][]string)
 		}
 		for key, values := range queries {
 			req.queries[key] = append(req.queries[key], values...)
 		}
+		return nil
 	}
 }
 
-func WithBuffer(contentType string, body *bytes.Buffer) func(req *Request) {
-	return func(req *Request) {
+func WithBuffer(contentType string, body *bytes.Buffer) func(req *Request) error {
+	return func(req *Request) error {
 		req.contentType = contentType
 		req.body = body
+		return nil
 	}
 }
 
-func WithString(contentType string, body string) func(req *Request) {
+func WithString(contentType string, body string) func(req *Request) error {
 	return WithBytes(contentType, []byte(body))
 }
 
-func WithBytes(contentType string, body []byte) func(req *Request) {
+func WithBytes(contentType string, body []byte) func(req *Request) error {
 	return WithBuffer(contentType, bytes.NewBuffer(body))
 }
 
-func WithJsonString(json string) func(req *Request) {
+func WithJsonString(json string) func(req *Request) error {
 	return WithString("application/json; charset=UTF-8", json)
 }
 
-func WithJsonObject(body any) func(req *Request) {
-	b, err := json.Marshal(body)
-	if err != nil {
-		panic(err)
+func WithJsonObject(body any) func(req *Request) error {
+	return func(req *Request) error {
+		b, err := json.Marshal(body)
+		if err != nil {
+			return err
+		}
+		req.contentType = "application/json; charset=UTF-8"
+		req.body = bytes.NewBuffer(b)
+		return nil
 	}
-	return WithJsonString(string(b))
 }
 
-func WithFormData(fields map[string]string) func(req *Request) {
-	return func(req *Request) {
+func WithFormData(fields map[string]string) func(req *Request) error {
+	return func(req *Request) error {
 		if req.body == nil {
 			req.body = &bytes.Buffer{}
 		}
@@ -114,15 +125,16 @@ func WithFormData(fields map[string]string) func(req *Request) {
 			data.Add(key, value)
 		}
 		req.body.WriteString(data.Encode())
+		return nil
 	}
 }
 
-func WithFile(fieldName string, file *os.File) func(req *Request) {
-	return WithReader(fieldName, file.Name(), file)
+func WithMultipartFile(fieldName string, file *os.File) func(req *Request) error {
+	return WithMultipartReader(fieldName, file.Name(), file)
 }
 
-func WithReader(fieldName string, filename string, reader io.Reader) func(req *Request) {
-	return func(req *Request) {
+func WithMultipartReader(fieldName string, filename string, reader io.Reader) func(req *Request) error {
+	return func(req *Request) error {
 		if req.body == nil {
 			req.body = &bytes.Buffer{}
 		}
@@ -136,11 +148,12 @@ func WithReader(fieldName string, filename string, reader io.Reader) func(req *R
 
 		formWriter, err := mw.CreateFormFile(fieldName, filename)
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("err create form file: %s", err)
 		}
 		if _, err = io.Copy(formWriter, reader); err != nil {
-			panic(err)
+			return fmt.Errorf("copy error: %s", err)
 		}
 		req.contentType = mw.FormDataContentType()
+		return nil
 	}
 }
