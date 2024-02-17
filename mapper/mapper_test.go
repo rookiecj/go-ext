@@ -43,7 +43,7 @@ func TestMapper_Map(t *testing.T) {
 
 	destValue := dest{}
 
-	m := NewMapper("mapper")
+	m := NewMapperWithTag("mapper")
 
 	if err := m.Map(&destValue, srcValue); err != nil {
 		t.Fatal(err)
@@ -91,7 +91,7 @@ func TestMapper_Map_Embedded(t *testing.T) {
 
 	destValue := dest{}
 
-	m := NewMapper("mapper")
+	m := NewMapperWithTag("mapper")
 
 	if err := m.Map(&destValue, srcValue); err != nil {
 		t.Fatal(err)

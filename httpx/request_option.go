@@ -21,7 +21,7 @@ type Request struct {
 	body        *bytes.Buffer
 }
 
-type Option func(req *Request) error
+type ReqOption func(req *Request) error
 
 func newRequest() *Request {
 	return &Request{
@@ -30,7 +30,7 @@ func newRequest() *Request {
 	}
 }
 
-func WithHeader(key, value string) func(req *Request) error {
+func WithHeader(key, value string) ReqOption {
 	return func(req *Request) error {
 		if req.headers == nil {
 			req.headers = make(map[string]string)
@@ -40,7 +40,7 @@ func WithHeader(key, value string) func(req *Request) error {
 	}
 }
 
-func WithHeaders(headers map[string]string) func(req *Request) error {
+func WithHeaders(headers map[string]string) ReqOption {
 	return func(req *Request) error {
 		if req.headers == nil {
 			req.headers = make(map[string]string)
@@ -52,14 +52,14 @@ func WithHeaders(headers map[string]string) func(req *Request) error {
 	}
 }
 
-func WithPath(path string) func(req *Request) error {
+func WithPath(path string) ReqOption {
 	return func(req *Request) error {
 		req.path += path
 		return nil
 	}
 }
 
-func WithQuery(key, value string) func(req *Request) error {
+func WithQuery(key, value string) ReqOption {
 	return func(req *Request) error {
 		if req.queries == nil {
 			req.queries = make(map[string][]string)
@@ -69,7 +69,7 @@ func WithQuery(key, value string) func(req *Request) error {
 	}
 }
 
-func WithQueries(queries map[string][]string) func(req *Request) error {
+func WithQueries(queries map[string][]string) ReqOption {
 	return func(req *Request) error {
 		if req.queries == nil {
 			req.queries = make(map[string][]string)
@@ -81,7 +81,7 @@ func WithQueries(queries map[string][]string) func(req *Request) error {
 	}
 }
 
-func WithBuffer(contentType string, body *bytes.Buffer) func(req *Request) error {
+func WithBuffer(contentType string, body *bytes.Buffer) ReqOption {
 	return func(req *Request) error {
 		req.contentType = contentType
 		req.body = body
@@ -89,19 +89,19 @@ func WithBuffer(contentType string, body *bytes.Buffer) func(req *Request) error
 	}
 }
 
-func WithString(contentType string, body string) func(req *Request) error {
+func WithString(contentType string, body string) ReqOption {
 	return WithBytes(contentType, []byte(body))
 }
 
-func WithBytes(contentType string, body []byte) func(req *Request) error {
+func WithBytes(contentType string, body []byte) ReqOption {
 	return WithBuffer(contentType, bytes.NewBuffer(body))
 }
 
-func WithJsonString(json string) func(req *Request) error {
+func WithJsonString(json string) ReqOption {
 	return WithString("application/json; charset=UTF-8", json)
 }
 
-func WithJsonObject(body any) func(req *Request) error {
+func WithJsonObject(body any) ReqOption {
 	return func(req *Request) error {
 		b, err := json.Marshal(body)
 		if err != nil {
@@ -113,7 +113,7 @@ func WithJsonObject(body any) func(req *Request) error {
 	}
 }
 
-func WithFormData(fields map[string]string) func(req *Request) error {
+func WithFormData(fields map[string]string) ReqOption {
 	return func(req *Request) error {
 		if req.body == nil {
 			req.body = &bytes.Buffer{}
@@ -129,11 +129,11 @@ func WithFormData(fields map[string]string) func(req *Request) error {
 	}
 }
 
-func WithMultipartFile(fieldName string, file *os.File) func(req *Request) error {
+func WithMultipartFile(fieldName string, file *os.File) ReqOption {
 	return WithMultipartReader(fieldName, file.Name(), file)
 }
 
-func WithMultipartReader(fieldName string, filename string, reader io.Reader) func(req *Request) error {
+func WithMultipartReader(fieldName string, filename string, reader io.Reader) ReqOption {
 	return func(req *Request) error {
 		if req.body == nil {
 			req.body = &bytes.Buffer{}

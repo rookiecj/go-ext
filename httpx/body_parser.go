@@ -2,27 +2,47 @@ package httpx
 
 import (
 	"encoding/json"
-	"strings"
+	"errors"
+	"fmt"
+	"io"
+	"reflect"
 )
 
-var bodyParsers = map[string]BodyParser{
+var BodyParsers = map[string]BodyParser{
+	"text/plain":       TextBodyParser,
 	"application/json": JsonBodyParser,
+	// application/octet-stream
 }
 
-type BodyParser func(data []byte, bodyPtr any) (err error)
+type BodyParser func(buf io.Reader, bodyPtr any) (err error)
 
-func getBodyParser(contentType string) BodyParser {
-	lowerType := strings.ToLower(contentType)
-	for key, parser := range bodyParsers {
-		if strings.HasPrefix(lowerType, key) {
-			return parser
-		}
+// TextBodyParser parses text/plain content type
+func TextBodyParser(buf io.Reader, bodyPtr any) (err error) {
+
+	bodyType := reflect.TypeOf(bodyPtr).Elem()
+	if bodyType.Kind() != reflect.String {
+		return errors.New("bodyPtr is not string")
 	}
+	valType := reflect.ValueOf(bodyPtr)
+	valRef := reflect.Indirect(valType)
+
+	var data []byte
+	data, err = io.ReadAll(buf)
+	if err != nil {
+		return fmt.Errorf("error while reading: %s", err)
+	}
+
+	valRef.SetString(string(data))
 	return nil
 }
 
-func JsonBodyParser(data []byte, bodyPtr any) (err error) {
+// JsonBodyParser parses application/json content type
+func JsonBodyParser(buf io.Reader, bodyPtr any) (err error) {
 	// body should be pointer to a type
+	data, err := io.ReadAll(buf)
+	if err != nil {
+		return fmt.Errorf("error while reading: %s", err)
+	}
 	err = json.Unmarshal(data, bodyPtr)
 	return
 }

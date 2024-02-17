@@ -5,71 +5,72 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
+	"strings"
 )
 
 type Response struct {
+	io.Closer
 	res         *http.Response
 	bufBody     *bufio.Reader
 	bodyParsers map[string]BodyParser
 }
 
-func (resp *Response) Header() map[string][]string {
-	return resp.res.Header
+func (c *Response) Header() map[string][]string {
+	return c.res.Header
 }
 
-func (resp *Response) Status() string {
-	return resp.res.Status
+func (c *Response) Status() string {
+	return c.res.Status
 }
 
-func (resp *Response) StatusCode() int {
-	return resp.res.StatusCode
+func (c *Response) StatusCode() int {
+	return c.res.StatusCode
 }
 
-// Close will be called on this Response
-func (resp *Response) BufferedReader() *bufio.Reader {
-	return resp.bufBody
+// BufferedReader returns the reader for body
+// [Close] will close the body
+func (c *Response) BufferedReader() *bufio.Reader {
+	return c.bufBody
 }
 
 // Closer interface
-func (resp *Response) Close() {
+func (c *Response) Close() {
 	// res.Body can be nil with HEAD method
-	if resp.res != nil && resp.res.Body != nil {
-		resp.res.Body.Close()
+	c.bufBody = nil
+	if c.res != nil && c.res.Body != nil {
+		c.res.Body.Close()
+		c.res.Body = nil
 	}
 }
 
-// unmarshal body and close the body stream
-func (resp *Response) Unmarshal(ptrType any) (err error) {
-
-	// parse body
-	var data []byte
-	if contentTypes, ok := resp.Header()["Content-Type"]; ok {
-		if bodyParser := getBodyParser(contentTypes[0]); bodyParser != nil {
-			defer resp.Close()
-			// read all head
-			data, err = io.ReadAll(resp.BufferedReader())
-			if err != nil {
-				return fmt.Errorf("error while reading: %s", err)
-			}
-
-			err = bodyParser(data, ptrType)
-			if err == nil {
-				return // done
-			}
-			// fall through
+func (c *Response) getBodyParser(contentType string) BodyParser {
+	lowerType := strings.ToLower(contentType)
+	for key, parser := range c.bodyParsers {
+		if strings.HasPrefix(lowerType, key) {
+			return parser
 		}
 	}
+	return nil
+}
 
-	// fallback to string
-	bodyType := reflect.TypeOf(ptrType).Elem()
-	if bodyType.Kind() == reflect.String {
-		valType := reflect.ValueOf(ptrType)
-		valRef := reflect.Indirect(valType)
-		valRef.SetString(string(data))
-		return nil
+// Unmarshal unmarshal body and close the body stream
+func (c *Response) Unmarshal(ptrType any) (err error) {
+
+	var contentTypes []string
+	var ok bool
+	if contentTypes, ok = c.Header()["Content-Type"]; !ok {
+		return fmt.Errorf("no content-type found")
 	}
 
-	// error
-	return fmt.Errorf("unknown error: %s", err)
+	var bodyParser BodyParser
+	if bodyParser = c.getBodyParser(contentTypes[0]); bodyParser == nil {
+		return fmt.Errorf("no parser found for %s", contentTypes[0])
+	}
+	// close here
+	defer c.Close()
+
+	// parse body
+	err = bodyParser(c.BufferedReader(), ptrType)
+
+	return
 }

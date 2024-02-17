@@ -18,13 +18,11 @@ const (
 	testPostUrl = "https://jsonplaceholder.typicode.com"
 )
 
-var testClient = NewBuilder().Build()
-
 func TestGetSimple(t *testing.T) {
 	type args struct {
 		client  *Client
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	type testCase[Body any] struct {
 		name     string
@@ -36,12 +34,12 @@ func TestGetSimple(t *testing.T) {
 		{
 			name: "GET - WithPath 1",
 			args: args{
-				client: testClient,
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/posts/1"),
 				},
 			},
@@ -71,7 +69,7 @@ func TestGetMulti(t *testing.T) {
 	type args struct {
 		client  *Client
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	type testCase[Body any] struct {
 		name     string
@@ -83,12 +81,12 @@ func TestGetMulti(t *testing.T) {
 		{
 			name: "GET /posts",
 			args: args{
-				client: testClient,
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/posts"),
 				},
 			},
@@ -124,7 +122,7 @@ func TestGetMultiComments(t *testing.T) {
 	type args struct {
 		client  *Client
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	type testCase[Body any] struct {
 		name     string
@@ -136,12 +134,12 @@ func TestGetMultiComments(t *testing.T) {
 		{
 			name: "GET - /posts/1/comments",
 			args: args{
-				client: NewBuilder().Build(),
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/posts/1/comments"),
 				},
 			},
@@ -151,12 +149,12 @@ func TestGetMultiComments(t *testing.T) {
 		{
 			name: "GET - /comments?postId=1",
 			args: args{
-				client: testClient,
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/comments"),
 					WithQuery("postId", "1"),
 				},
@@ -194,7 +192,7 @@ func TestPostSimple(t *testing.T) {
 	type args struct {
 		client  *Client
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	type testCase struct {
 		name     string
@@ -206,12 +204,12 @@ func TestPostSimple(t *testing.T) {
 		{
 			name: "POST - WithJsonObject 1",
 			args: args{
-				client: testClient,
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/posts"),
 					WithJsonObject(testPosts[0]),
 				},
@@ -262,7 +260,7 @@ func TestPostFormSimple(t *testing.T) {
 	type args struct {
 		client  *Client
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	type testCase struct {
 		name     string
@@ -274,12 +272,12 @@ func TestPostFormSimple(t *testing.T) {
 		{
 			name: "POST - WithFormData 1",
 			args: args{
-				client: testClient,
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/posts"),
 					WithFormData(func() map[string]string {
 						//	type testPost struct {
@@ -329,7 +327,7 @@ func TestPostFileSimple(t *testing.T) {
 	type args struct {
 		client  *Client
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	type testCase struct {
 		name     string
@@ -344,14 +342,14 @@ func TestPostFileSimple(t *testing.T) {
 		{
 			name: "POST - WithMultipartFile",
 			args: args{
-				client: testClient,
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(serverUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/posts"),
-					WithMultipartReader("testfieldname", "testfilename", func() io.Reader {
+					WithMultipartReader("testfieldname", "testfilename.txt", func() io.Reader {
 						msg := "this is file"
 						b := bytes.NewBufferString(msg)
 						return b
@@ -427,7 +425,7 @@ func TestPutSimple(t *testing.T) {
 	type args struct {
 		client  *Client
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	type testCase[ResBody any] struct {
 		name     string
@@ -439,12 +437,12 @@ func TestPutSimple(t *testing.T) {
 		{
 			name: "PUT - WithJsonObject 1",
 			args: args{
-				client: testClient,
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/posts/1"),
 					WithJsonObject(testPosts[0]),
 				},
@@ -478,7 +476,7 @@ func TestDeleteSimple(t *testing.T) {
 	type args struct {
 		client  *Client
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	type testCase[ResBody any] struct {
 		name     string
@@ -490,12 +488,12 @@ func TestDeleteSimple(t *testing.T) {
 		{
 			name: "DELETE - WithJsonObject 1",
 			args: args{
-				client: testClient,
+				client: NewClient(),
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{
+				options: []ReqOption{
 					WithPath("/posts/1"),
 				},
 			},
@@ -528,7 +526,7 @@ func TestClient_HeadWith(t *testing.T) {
 
 	type args struct {
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	tests := []struct {
 		name        string
@@ -539,13 +537,13 @@ func TestClient_HeadWith(t *testing.T) {
 	}{
 		{
 			name:   "Head",
-			client: testClient,
+			client: NewClient(),
 			args: args{
 				url: func() *url.URL {
 					u, _ := url.Parse(testPostUrl)
 					return u
 				}(),
-				options: []Option{},
+				options: []ReqOption{},
 			},
 			wantHeaders: []string{
 				"Date",
@@ -582,7 +580,7 @@ func TestClient_OptionsWith(t *testing.T) {
 
 	type args struct {
 		url     *url.URL
-		options []Option
+		options []ReqOption
 	}
 	tests := []struct {
 		name        string
@@ -593,13 +591,13 @@ func TestClient_OptionsWith(t *testing.T) {
 	}{
 		{
 			name:   "Options",
-			client: testClient,
+			client: NewClient(),
 			args: args{
 				url: func() *url.URL {
 					u, _ := url.Parse("https://example.org")
 					return u
 				}(),
-				options: []Option{},
+				options: []ReqOption{},
 			},
 			wantHeaders: func() map[string][]string {
 				headers := make(map[string][]string)
