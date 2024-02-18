@@ -21,7 +21,7 @@ const (
 func TestGetSimple(t *testing.T) {
 	type args struct {
 		client  *Client
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	type testCase[Body any] struct {
@@ -35,9 +35,10 @@ func TestGetSimple(t *testing.T) {
 			name: "GET - WithPath 1",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
-					u, _ := url.Parse(testPostUrl)
-					return u
+				url: func() string {
+					//u, _ := url.Parse(testPostUrl)
+					//return u
+					return testPostUrl
 				}(),
 				options: []ReqOption{
 					WithPath("/posts/1"),
@@ -49,7 +50,7 @@ func TestGetSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.GetWith(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.Get(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -68,7 +69,7 @@ func TestGetSimple(t *testing.T) {
 func TestGetMulti(t *testing.T) {
 	type args struct {
 		client  *Client
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	type testCase[Body any] struct {
@@ -82,9 +83,10 @@ func TestGetMulti(t *testing.T) {
 			name: "GET /posts",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
-					u, _ := url.Parse(testPostUrl)
-					return u
+				url: func() string {
+					//u, _ := url.Parse(testPostUrl)
+					//return u
+					return testPostUrl
 				}(),
 				options: []ReqOption{
 					WithPath("/posts"),
@@ -96,7 +98,7 @@ func TestGetMulti(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.GetWith(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.Get(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetMulti() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -121,7 +123,7 @@ func TestGetMulti(t *testing.T) {
 func TestGetMultiComments(t *testing.T) {
 	type args struct {
 		client  *Client
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	type testCase[Body any] struct {
@@ -135,9 +137,10 @@ func TestGetMultiComments(t *testing.T) {
 			name: "GET - /posts/1/comments",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
-					u, _ := url.Parse(testPostUrl)
-					return u
+				url: func() string {
+					//u, _ := url.Parse(testPostUrl)
+					//return u
+					return testPostUrl
 				}(),
 				options: []ReqOption{
 					WithPath("/posts/1/comments"),
@@ -150,9 +153,10 @@ func TestGetMultiComments(t *testing.T) {
 			name: "GET - /comments?postId=1",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
-					u, _ := url.Parse(testPostUrl)
-					return u
+				url: func() string {
+					//u, _ := url.Parse(testPostUrl)
+					//return u
+					return testPostUrl
 				}(),
 				options: []ReqOption{
 					WithPath("/comments"),
@@ -165,7 +169,7 @@ func TestGetMultiComments(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.GetWith(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.Get(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetMultiComments() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -191,7 +195,7 @@ func TestGetMultiComments(t *testing.T) {
 func TestPostSimple(t *testing.T) {
 	type args struct {
 		client  *Client
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	type testCase struct {
@@ -205,9 +209,10 @@ func TestPostSimple(t *testing.T) {
 			name: "POST - WithJsonObject 1",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
-					u, _ := url.Parse(testPostUrl)
-					return u
+				url: func() string {
+					//u, _ := url.Parse(testPostUrl)
+					//return u
+					return testPostUrl
 				}(),
 				options: []ReqOption{
 					WithPath("/posts"),
@@ -239,7 +244,7 @@ func TestPostSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.PostWith(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.Post(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Post() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -259,7 +264,7 @@ func TestPostSimple(t *testing.T) {
 func TestPostFormSimple(t *testing.T) {
 	type args struct {
 		client  *Client
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	type testCase struct {
@@ -273,9 +278,8 @@ func TestPostFormSimple(t *testing.T) {
 			name: "POST - WithFormData 1",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
-					u, _ := url.Parse(testPostUrl)
-					return u
+				url: func() string {
+					return testPostUrl
 				}(),
 				options: []ReqOption{
 					WithPath("/posts"),
@@ -306,7 +310,7 @@ func TestPostFormSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.PostWith(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.Post(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("PostForm() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -326,7 +330,7 @@ func TestPostFormSimple(t *testing.T) {
 func TestPostFileSimple(t *testing.T) {
 	type args struct {
 		client  *Client
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	type testCase struct {
@@ -343,9 +347,9 @@ func TestPostFileSimple(t *testing.T) {
 			name: "POST - WithMultipartFile",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
+				url: func() string {
 					u, _ := url.Parse(serverUrl)
-					return u
+					return u.String()
 				}(),
 				options: []ReqOption{
 					WithPath("/posts"),
@@ -362,7 +366,7 @@ func TestPostFileSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.PostWith(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.Post(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Post File() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -424,7 +428,7 @@ func TestPostFileSimple(t *testing.T) {
 func TestPutSimple(t *testing.T) {
 	type args struct {
 		client  *Client
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	type testCase[ResBody any] struct {
@@ -438,9 +442,9 @@ func TestPutSimple(t *testing.T) {
 			name: "PUT - WithJsonObject 1",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
+				url: func() string {
 					u, _ := url.Parse(testPostUrl)
-					return u
+					return u.String()
 				}(),
 				options: []ReqOption{
 					WithPath("/posts/1"),
@@ -455,7 +459,7 @@ func TestPutSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.PutWith(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.Put(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Put() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -475,7 +479,7 @@ func TestPutSimple(t *testing.T) {
 func TestDeleteSimple(t *testing.T) {
 	type args struct {
 		client  *Client
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	type testCase[ResBody any] struct {
@@ -489,9 +493,9 @@ func TestDeleteSimple(t *testing.T) {
 			name: "DELETE - WithJsonObject 1",
 			args: args{
 				client: NewClient(),
-				url: func() *url.URL {
+				url: func() string {
 					u, _ := url.Parse(testPostUrl)
-					return u
+					return u.String()
 				}(),
 				options: []ReqOption{
 					WithPath("/posts/1"),
@@ -505,7 +509,7 @@ func TestDeleteSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResp, err := tt.args.client.DeleteWith(tt.args.url, tt.args.options...)
+			gotResp, err := tt.args.client.Delete(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -522,10 +526,10 @@ func TestDeleteSimple(t *testing.T) {
 	}
 }
 
-func TestClient_HeadWith(t *testing.T) {
+func TestClient_Head(t *testing.T) {
 
 	type args struct {
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	tests := []struct {
@@ -539,9 +543,9 @@ func TestClient_HeadWith(t *testing.T) {
 			name:   "Head",
 			client: NewClient(),
 			args: args{
-				url: func() *url.URL {
+				url: func() string {
 					u, _ := url.Parse(testPostUrl)
-					return u
+					return u.String()
 				}(),
 				options: []ReqOption{},
 			},
@@ -561,25 +565,25 @@ func TestClient_HeadWith(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRes, err := tt.client.HeadWith(tt.args.url, tt.args.options...)
+			gotRes, err := tt.client.Head(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("HeadWith() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Head() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			gotValues := gotRes.Header()
 			for _, header := range tt.wantHeaders {
 				if _, ok := gotValues[header]; !ok {
-					t.Errorf("HeadWith(): want %v, got %v", header, gotValues)
+					t.Errorf("Head(): want %v, got %v", header, gotValues)
 				}
 			}
 		})
 	}
 }
 
-func TestClient_OptionsWith(t *testing.T) {
+func TestClient_Options(t *testing.T) {
 
 	type args struct {
-		url     *url.URL
+		url     string
 		options []ReqOption
 	}
 	tests := []struct {
@@ -593,9 +597,9 @@ func TestClient_OptionsWith(t *testing.T) {
 			name:   "Options",
 			client: NewClient(),
 			args: args{
-				url: func() *url.URL {
+				url: func() string {
 					u, _ := url.Parse("https://example.org")
-					return u
+					return u.String()
 				}(),
 				options: []ReqOption{},
 			},
@@ -610,9 +614,9 @@ func TestClient_OptionsWith(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRes, err := tt.client.OptionsWith(tt.args.url, tt.args.options...)
+			gotRes, err := tt.client.Options(tt.args.url, tt.args.options...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("OptionsWith() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Options() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			for key, values := range tt.wantHeaders {
@@ -624,10 +628,10 @@ func TestClient_OptionsWith(t *testing.T) {
 				//0 = {string} "OPTIONS, GET, HEAD, POST"
 				for _, value := range values {
 					//if !slices.Contains(gotValues, value) {
-					//	t.Errorf("OptionsWith(): want %v, got %v", values, gotValues)
+					//	t.Errorf("Options(): want %v, got %v", values, gotValues)
 					//}
 					if !strings.Contains(gotValues[0], value) {
-						t.Errorf("OptionsWith(): want %v, got %v", values, gotValues)
+						t.Errorf("Options(): want %v, got %v", values, gotValues)
 					}
 				}
 			}

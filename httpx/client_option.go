@@ -14,6 +14,7 @@ type clientOptions struct {
 	bodyParsers map[string]BodyParser
 	// the Transport requests gzip on its own and gets a gzipped response
 	disableCompression bool // false
+	headers            map[string][]string
 }
 
 type ClientOption func(clientOptions *clientOptions)
@@ -32,5 +33,11 @@ func defaultClientOptions() clientOptions {
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(clientOptions *clientOptions) {
 		clientOptions.timeout = timeout
+	}
+}
+
+func WithDefaultHeaders(headers map[string][]string) ClientOption {
+	return func(clientOptions *clientOptions) {
+		clientOptions.headers = headers
 	}
 }

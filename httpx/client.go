@@ -11,9 +11,8 @@ import (
 )
 
 type Client struct {
-	//Do(method string, url url.URL, options ...ReqOption) (res *http.Response, data []byte, err error)
-	client http.Client
-	//bodyParsers        map[reflect.Type]BodyParser
+	client             http.Client
+	defaultHeaders     map[string][]string
 	bodyParsers        map[string]BodyParser
 	disableCompression bool
 }
@@ -46,6 +45,7 @@ func NewClient(options ...ClientOption) *Client {
 		},
 		bodyParsers:        co.bodyParsers,
 		disableCompression: co.disableCompression,
+		defaultHeaders:     co.headers,
 	}
 	return &client
 }
@@ -54,6 +54,8 @@ func (c *Client) Do(method string, url *url.URL, options ...ReqOption) (res *Res
 
 	// new request
 	req := newRequest()
+
+	// options
 	for _, option := range options {
 		if err = option(req); err != nil {
 			return
@@ -86,8 +88,18 @@ func (c *Client) Do(method string, url *url.URL, options ...ReqOption) (res *Res
 		return
 	}
 
-	for k, v := range req.headers {
-		hreq.Header.Add(k, v)
+	// headers
+	// add default headers
+	for k, values := range c.defaultHeaders {
+		for _, v := range values {
+			hreq.Header.Add(k, v)
+		}
+	}
+	// request headers
+	for k, values := range req.headers {
+		for _, v := range values {
+			hreq.Header.Add(k, v)
+		}
 	}
 	if len(req.contentType) != 0 {
 		hreq.Header.Set("Content-Type", req.contentType)
@@ -119,48 +131,34 @@ func (c *Client) Do(method string, url *url.URL, options ...ReqOption) (res *Res
 	return
 }
 
-func (c *Client) Get(url string, headers map[string]string) (res *Response, err error) {
+func (c *Client) Get(url string, options ...ReqOption) (res *Response, err error) {
 	newUrl, err := neturl.Parse(url)
 	if err != nil {
 		err = fmt.Errorf("parse error: %v", err)
 		return
 	}
-	res, err = c.GetWith(newUrl, WithHeaders(headers))
+	res, err = c.Do("GET", newUrl, options...)
 	return
 }
 
-func (c *Client) GetWith(url *url.URL, options ...ReqOption) (res *Response, err error) {
-	res, err = c.Do("GET", url, options...)
-	return
-}
-
-func (c *Client) Post(url string, headers map[string]string, jsonObj any) (res *Response, err error) {
+func (c *Client) Post(url string, options ...ReqOption) (res *Response, err error) {
 	newUrl, err := neturl.Parse(url)
 	if err != nil {
 		err = fmt.Errorf("parse error: %v", err)
 		return
 	}
-	res, err = c.PostWith(newUrl, WithHeaders(headers), WithJsonObject(jsonObj))
+
+	res, err = c.Do("POST", newUrl, options...)
 	return
 }
 
-func (c *Client) PostWith(url *url.URL, options ...ReqOption) (res *Response, err error) {
-	res, err = c.Do("POST", url, options...)
-	return
-}
-
-func (c *Client) Put(url string, headers map[string]string, jsonObj any) (res *Response, err error) {
+func (c *Client) Put(url string, options ...ReqOption) (res *Response, err error) {
 	newUrl, err := neturl.Parse(url)
 	if err != nil {
 		err = fmt.Errorf("parse error: %v", err)
 		return
 	}
-	res, err = c.PutWith(newUrl, WithHeaders(headers), WithJsonObject(jsonObj))
-	return
-}
-
-func (c *Client) PutWith(url *url.URL, options ...ReqOption) (res *Response, err error) {
-	res, err = c.Do("PUT", url, options...)
+	res, err = c.Do("PUT", newUrl, options...)
 	return
 }
 
@@ -179,50 +177,35 @@ func (c *Client) PutWith(url *url.URL, options ...ReqOption) (res *Response, err
 //	return
 //}
 
-func (c *Client) Delete(url string, headers map[string]string, jsonObj any) (res *Response, err error) {
+func (c *Client) Delete(url string, options ...ReqOption) (res *Response, err error) {
 	newUrl, err := neturl.Parse(url)
 	if err != nil {
 		err = fmt.Errorf("parse error: %v", err)
 		return
 	}
-	res, err = c.DeleteWith(newUrl, WithHeaders(headers), WithJsonObject(jsonObj))
+	res, err = c.Do("DELETE", newUrl, options...)
 	return
 }
 
-func (c *Client) DeleteWith(url *url.URL, options ...ReqOption) (res *Response, err error) {
-	res, err = c.Do("DELETE", url, options...)
-	return
-}
-
-func (c *Client) Head(url string, headers map[string]string) (res *Response, err error) {
+func (c *Client) Head(url string, options ...ReqOption) (res *Response, err error) {
 	newUrl, err := neturl.Parse(url)
 	if err != nil {
 		err = fmt.Errorf("parse error: %v", err)
 		return
 	}
-	res, err = c.HeadWith(newUrl, WithHeaders(headers))
-	return
-}
-
-func (c *Client) HeadWith(url *url.URL, options ...ReqOption) (res *Response, err error) {
-	res, err = c.Do("HEAD", url, options...)
+	res, err = c.Do("HEAD", newUrl, options...)
 	// header has no response body, close here
 	res.Close()
 	return
 }
 
-func (c *Client) Options(url string) (res *Response, err error) {
+func (c *Client) Options(url string, options ...ReqOption) (res *Response, err error) {
 	newUrl, err := neturl.Parse(url)
 	if err != nil {
 		err = fmt.Errorf("parse error: %v", err)
 		return
 	}
-	res, err = c.OptionsWith(newUrl)
-	return
-}
-
-func (c *Client) OptionsWith(url *url.URL, options ...ReqOption) (res *Response, err error) {
-	res, err = c.Do("OPTIONS", url, options...)
+	res, err = c.Do("OPTIONS", newUrl, options...)
 	// Options has no response body, close here
 	res.Close()
 	return
