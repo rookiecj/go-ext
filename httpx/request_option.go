@@ -13,7 +13,7 @@ import (
 type Request struct {
 	// fields can be hidden
 	// becuase the request only be created and accessed in the client
-	headers map[string]string
+	headers map[string][]string
 	path    string
 	queries map[string][]string
 
@@ -25,7 +25,7 @@ type ReqOption func(req *Request) error
 
 func newRequest() *Request {
 	return &Request{
-		headers: make(map[string]string),
+		headers: make(map[string][]string),
 		body:    nil,
 	}
 }
@@ -33,9 +33,9 @@ func newRequest() *Request {
 func WithHeader(key, value string) ReqOption {
 	return func(req *Request) error {
 		if req.headers == nil {
-			req.headers = make(map[string]string)
+			req.headers = make(map[string][]string)
 		}
-		req.headers[key] = value
+		req.headers[key] = append(req.headers[key], value)
 		return nil
 	}
 }
@@ -43,10 +43,10 @@ func WithHeader(key, value string) ReqOption {
 func WithHeaders(headers map[string]string) ReqOption {
 	return func(req *Request) error {
 		if req.headers == nil {
-			req.headers = make(map[string]string)
+			req.headers = make(map[string][]string)
 		}
 		for k, v := range headers {
-			req.headers[k] = v
+			req.headers[k] = append(req.headers[k], v)
 		}
 		return nil
 	}
@@ -101,9 +101,9 @@ func WithJsonString(json string) ReqOption {
 	return WithString("application/json; charset=UTF-8", json)
 }
 
-func WithJsonObject(body any) ReqOption {
+func WithJsonObject(obj any) ReqOption {
 	return func(req *Request) error {
-		b, err := json.Marshal(body)
+		b, err := json.Marshal(obj)
 		if err != nil {
 			return err
 		}

@@ -36,7 +36,7 @@ func main() {
 
 	destValue := dest{}
 
-	m := mapper.NewMapper("mapper")
+	m := mapper.NewMapperWithTag("mapper")
 
 	if err := m.Map(&destValue, srcValue); err != nil {
 		panic(err)
