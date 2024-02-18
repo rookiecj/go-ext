@@ -37,13 +37,13 @@ func main() {
 	if res, err = client.Get(testPostUrl, httpx.WithPath("/posts/1")); err != nil {
 		panic(err)
 	}
+	res.Close()
 
 	post := testPost{}
 	if err = res.Unmarshal(&post); err != nil {
 		panic(err)
 	}
 	fmt.Printf("post: %v\n", post)
-	res.Close()
 }
 
 
