@@ -20,7 +20,7 @@ var testPostUrl = "http://0.0.0.0:8080/post"
 
 func makeRequest(request *dto.PostRequest) *dto.PostResponse {
 
-	c := httpx.NewClient(httpx.WithBodyParser("application/protobuf", pb.ProtoBufBodyParser))
+	c := httpx.NewClient(httpx.WithDefaultBodyParser("application/protobuf", pb.ProtoBufBodyParser))
 
 	req, err := proto.Marshal(request)
 	if err != nil {
