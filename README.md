@@ -30,22 +30,26 @@ type testPost struct {
 var testPostUrl = "https://jsonplaceholder.typicode.com"
 
 func main() {
-	client := httpx.NewClient()
+    client := httpx.NewClient()
 
-	var res *httpx.Response
-	var err error
-	if res, err = client.Get(testPostUrl, httpx.WithPath("/posts/1")); err != nil {
-		panic(err)
+	newPost := testPost{
+		UserId: 1,
+		Title:  "New title",
+		Body:   "New Body",
 	}
-	res.Close()
 
-	post := testPost{}
-	if err = res.Unmarshal(&post); err != nil {
-		panic(err)
+	if res, err := client.Post(testPostUrl,
+		httpx.WithPath("/posts"),
+		httpx.WithJsonObject(newPost),
+	); err == nil {
+		defer res.Close()
+
+		var resPost testPost
+		if err := res.Unmarshal(&resPost); err == nil {
+			fmt.Printf("res: %v\n", resPost)
+		}
 	}
-	fmt.Printf("post: %v\n", post)
 }
-
 
 ```
 
@@ -59,12 +63,13 @@ There are two extentions:
 ### lang extensions
 
 - [X] container: priority queue
-- [X] sorted map
+- [X] container: sorted map
+- [X] container: set, sorted set
 
 ### http extensions
 
-- [X] http client
-- [X] Http response body parser
+- [X] `NewClient` http client with option
+- [X] `BodyParser` Http response body parser
 
 ## Todo
 
