@@ -5,6 +5,9 @@ setup:
 	go get google.golang.org/protobuf/proto
 	go get github.com/gorilla/mux
 
+dep:
+	go get -u ./...
+	go mod tidy
 
 .PHONY: proto
 proto:
@@ -17,9 +20,9 @@ clean:
 
 .PHONY: server
 server:
-	go run server/main.go
+	-go run server/main.go
 
-
-client:
+.PHONY: client
+client: server
 	go run cmd/httpx_bodyparser.go
 	
