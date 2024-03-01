@@ -9,8 +9,7 @@ const (
 )
 
 type clientOptions struct {
-	timeout time.Duration
-	//bodyParsers map[reflect.Type]BodyParser
+	timeout     time.Duration
 	bodyParsers map[string]BodyParser
 	// the Transport requests gzip on its own and gets a gzipped response
 	disableCompression bool // false
@@ -21,8 +20,7 @@ type ClientOption func(clientOptions *clientOptions)
 
 func defaultClientOptions() clientOptions {
 	co := clientOptions{
-		timeout: DefaultTimeout,
-		//bodyParsers:        make(map[reflect.Type]BodyParser),
+		timeout:            DefaultTimeout,
 		bodyParsers:        make(map[string]BodyParser),
 		disableCompression: false,
 	}
@@ -42,7 +40,7 @@ func WithDefaultHeaders(headers map[string][]string) ClientOption {
 	}
 }
 
-func WithBodyParser(contentType string, parser BodyParser) ClientOption {
+func WithDefaultBodyParser(contentType string, parser BodyParser) ClientOption {
 	return func(clientOptions *clientOptions) {
 		clientOptions.bodyParsers[contentType] = parser
 	}
