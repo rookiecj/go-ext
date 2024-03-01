@@ -50,6 +50,8 @@ func NewClient(options ...ClientOption) *Client {
 	return &client
 }
 
+// Do makes a request to the url with given options
+// res should be Closed after use
 func (c *Client) Do(method string, url *url.URL, options ...ReqOption) (res *Response, err error) {
 
 	// new request
