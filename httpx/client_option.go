@@ -41,3 +41,9 @@ func WithDefaultHeaders(headers map[string][]string) ClientOption {
 		clientOptions.headers = headers
 	}
 }
+
+func WithBodyParser(contentType string, parser BodyParser) ClientOption {
+	return func(clientOptions *clientOptions) {
+		clientOptions.bodyParsers[contentType] = parser
+	}
+}
