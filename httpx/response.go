@@ -66,7 +66,7 @@ func (c *Response) Unmarshal(ptrType any) (err error) {
 	if bodyParser = c.getBodyParser(contentTypes[0]); bodyParser == nil {
 		return fmt.Errorf("no parser found for %s", contentTypes[0])
 	}
-	// close here
+	// close body here
 	defer c.Close()
 
 	// parse body

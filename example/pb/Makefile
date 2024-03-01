@@ -18,3 +18,8 @@ clean:
 .PHONY: server
 server:
 	go run server/main.go
+
+
+client:
+	go run cmd/httpx_bodyparser.go
+	

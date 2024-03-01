@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/url"
 	"os"
+	"strings"
 )
 
 type Request struct {
@@ -19,6 +20,9 @@ type Request struct {
 
 	contentType string
 	body        *bytes.Buffer
+
+	// response body parser
+	bodyParser map[string]BodyParser
 }
 
 type ReqOption func(req *Request) error
@@ -113,6 +117,14 @@ func WithJsonObject(obj any) ReqOption {
 	}
 }
 
+func WithMarshalObject(contentType string, obj any, marshaller Marshaller) ReqOption {
+	if body, err := marshaller(obj); err != nil {
+		return nil
+	} else {
+		return WithBytes(contentType, body)
+	}
+}
+
 func WithFormData(fields map[string]string) ReqOption {
 	return func(req *Request) error {
 		if req.body == nil {
@@ -154,6 +166,14 @@ func WithMultipartReader(fieldName string, filename string, reader io.Reader) Re
 			return fmt.Errorf("copy error: %s", err)
 		}
 		req.contentType = mw.FormDataContentType()
+		return nil
+	}
+}
+
+// WithBodyParser sets ResponseBodyParser
+func WithBodyParser(contentType string, bodyParser BodyParser) ReqOption {
+	return func(req *Request) error {
+		req.bodyParser[strings.ToLower(contentType)] = bodyParser
 		return nil
 	}
 }

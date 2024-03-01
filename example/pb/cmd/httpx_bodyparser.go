@@ -1,30 +1,40 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
+	"github.com/rookiecj/go-langext/httpx"
 	"google.golang.org/protobuf/proto"
 	"log"
-	"net/http"
 	pb "protobuf-example"
 	"protobuf-example/proto/dto"
 )
 
+type testPost struct {
+	UserId int    `json:"userId"`
+	Id     int    `json:"id"`
+	Title  string `json:"title"`
+	Body   string `json:"body"`
+}
+
+var testPostUrl = "http://0.0.0.0:8080/post"
+
 func makeRequest(request *dto.PostRequest) *dto.PostResponse {
+
+	c := httpx.NewClient(httpx.WithBodyParser("application/protobuf", pb.ProtoBufBodyParser))
 
 	req, err := proto.Marshal(request)
 	if err != nil {
 		log.Fatalf("Unable to marshal request : %v", err)
 	}
-
-	resp, err := http.Post("http://0.0.0.0:8080/post", "application/x-binary", bytes.NewReader(req))
+	resp, err := c.Post(testPostUrl,
+		httpx.WithBytes("application/x-binary", req))
 	if err != nil {
 		log.Fatalf("Unable to read from the server : %v", err)
 	}
-	defer resp.Body.Close()
+	defer resp.Close()
 
 	respObj := &dto.PostResponse{}
-	pb.ProtoBufBodyParser(resp.Body, respObj)
+	err = resp.Unmarshal(respObj)
 	return respObj
 }
 

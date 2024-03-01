@@ -17,6 +17,8 @@ type Client struct {
 	disableCompression bool
 }
 
+type Marshaller func(objPtr any) ([]byte, error)
+
 var DefaultClient = NewClient()
 
 func NewClient(options ...ClientOption) *Client {
@@ -119,6 +121,15 @@ func (c *Client) Do(method string, url *url.URL, options ...ReqOption) (res *Res
 		res:         resp,
 		bufBody:     nil,
 		bodyParsers: c.bodyParsers,
+	}
+
+	// bodyparser
+	for k, v := range c.bodyParsers {
+		res.bodyParsers[k] = v
+	}
+	// bodyparser on req
+	for k, v := range req.bodyParser {
+		res.bodyParsers[k] = v
 	}
 
 	// 204 No Content

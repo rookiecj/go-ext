@@ -36,5 +36,5 @@ func main() {
 
 	request := &dto.PostRequest{Id: 1}
 	resp := makeRequest(request)
-	fmt.Printf("Response from API is : %v\n", resp.Body)
+	fmt.Printf("Response is : %v\n", resp.Body)
 }
