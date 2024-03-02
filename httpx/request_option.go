@@ -177,3 +177,7 @@ func WithBodyParser(contentType string, bodyParser BodyParser) ReqOption {
 		return nil
 	}
 }
+
+func WithCsvBodyParser(hasHeader bool) ReqOption {
+	return WithBodyParser("text/csv", NewCsvBodyParser(hasHeader, ',', '#'))
+}
